@@ -3,6 +3,11 @@ import SignInScreen from './src/screens/SignInScreen';
 import { View, ActivityIndicator, AppState } from 'react-native';
 import SignUpScreen from './src/screens/SignUpScreen';
 import supabase from './src/screens/config/supabaseClient';
+import HomeScreen from './src/screens/HomeScreen';
+import ResultScreen from "./src/screens/ResultScreen";
+import AssessmentScreen from "./src/screens/AssessmentScreen";
+import HomeScreenOld from "./src/screens/HomeScreenOld";
+import LogDailyNormal from "./src/screens/LogDailyNormal";
 
 
 export default function App() {
@@ -10,6 +15,13 @@ export default function App() {
 
   const navigateToSignIn = () => setCurrentScreen('SignIn');
   const navigateToSignUp = () => setCurrentScreen('SignUp');
+  const navigateToHome = () => setCurrentScreen('Home');
+  const navigateToResult = () => setCurrentScreen('Result');
+  const navigateToAssessment = () => setCurrentScreen('Assessment');
+  const navigateToHomeOld = () => setCurrentScreen("HomeOld");
+  const navigateToLogDaily = () => setCurrentScreen("LogDaily");
+
+
 useEffect(() => {
     // ฟังก์ชันจัดการสถานะแอป (เปิด/พับหน้าจอ)
     const handleAppStateChange = (state) => {
@@ -26,6 +38,7 @@ useEffect(() => {
       subscription.remove();
     };
   }, []);
+  
 
   return (
     <>
@@ -34,6 +47,35 @@ useEffect(() => {
       ) : (
         <SignUpScreen onNavigate={navigateToSignIn} />
       )}
+      {/* ===== หน้า Home (เพิ่มใหม่) ===== */}
+      {currentScreen === 'Home' && (
+        <HomeScreen 
+          onLogout={navigateToSignIn} 
+          onAssess={navigateToResult}
+          onPhotoAssess={navigateToAssessment}
+        />
+      )}
+      {currentScreen === 'Assessment' && (
+  <AssessmentScreen
+    onBack={navigateToHome}
+    onResult={navigateToResult}
+  />
+    )}
+    {currentScreen === 'Result' && (
+  <ResultScreen onSave={navigateToHomeOld} />
+)}
+{currentScreen === 'HomeOld' && (
+  <HomeScreenOld
+  onAssess={navigateToResult}
+  onLogDaily={navigateToLogDaily}
+  />
+)}
+{currentScreen === "LogDaily" && (
+  <LogDailyNormal />
+)}
+
+    
+
     </>
   );
 }
