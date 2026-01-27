@@ -11,7 +11,7 @@ import LogDailyNormal from "./src/screens/LogDailyNormal";
 
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState('SignIn');
+  const [currentScreen, setCurrentScreen] = useState('Home');
 
   const navigateToSignIn = () => setCurrentScreen('SignIn');
   const navigateToSignUp = () => setCurrentScreen('SignUp');
