@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
+  /* ===== Container ===== */
   container: {
     flex: 1,
     backgroundColor: "#F7FBFA",
@@ -26,7 +27,7 @@ export default StyleSheet.create({
     color: "#0C5A58",
   },
 
-  /* ===== Circle ===== */
+  /* ===== Risk Circle ===== */
   circleWrapper: {
     alignItems: "center",
     marginTop: 20,
@@ -89,7 +90,7 @@ export default StyleSheet.create({
     lineHeight: 16,
   },
 
-  /* ===== Sections ===== */
+  /* ===== Section Title ===== */
   sectionTitle: {
     marginTop: 24,
     marginBottom: 8,
@@ -134,52 +135,94 @@ export default StyleSheet.create({
     borderRadius: 4,
   },
 
-  /* ===== Card ===== */
-  card: {
-    marginHorizontal: 20,
+  /* ================================================= */
+  /* ===== NEW : Disease Dropdown Box ===== */
+  centerWrapper: {
+  alignItems: "center",   // 👈 จัดกลางแนวนอน
+  marginTop: 8,
+},
+  diseaseBox: {
+    width: 343,
+    minHeight: 204,
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
+    marginBottom: 16,
+    marginTop: 12,
+    alignSelf: "center",
+
     shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowRadius: 6,
-    elevation: 3,
+    elevation: 4,
   },
 
-  cardTitle: {
+  boxTitle: {
     fontSize: 14,
     fontWeight: "600",
     color: "#0C5A58",
   },
 
-  dropdown: {
+  dropdownHeader: {
     marginTop: 12,
+    height: 40,
     borderWidth: 1,
     borderColor: "#D6E5E3",
-    borderRadius: 8,
+    borderRadius: 10,
     paddingHorizontal: 12,
-    height: 36,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
 
   dropdownText: {
-    fontSize: 11,
-    color: "#8DA3A2",
-  },
-
-  dropdownArrow: {
-    fontSize: 14,
-    color: "#8DA3A2",
-  },
-
-  cardDesc: {
-    marginTop: 12,
-    fontSize: 10,
+    fontSize: 12,
     color: "#6C7A79",
-    lineHeight: 14,
   },
+
+  dropdownList: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: "#E1ECEB",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+
+  dropdownItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E1ECEB",
+  },
+
+  dropdownItemText: {
+    fontSize: 12,
+    color: "#0C5A58",
+  },
+
+  /* ===== NEW : Counseling Box ===== */
+  counselingBox: {
+    width: 343,
+    minHeight: 204,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 16,
+    alignSelf: "center",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+
+  counselingText: {
+    marginTop: 12,
+    fontSize: 11,
+    color: "#6C7A79",
+    lineHeight: 16,
+  },
+
 
   /* ===== Save Button ===== */
   saveButton: {
@@ -199,27 +242,5 @@ export default StyleSheet.create({
     fontWeight: "600",
     color: "#FFFFFF",
   },
-  optionItem: {
-  padding: 12,
-  borderRadius: 10,
-  borderWidth: 1,
-  borderColor: "#E5E7EB",
-  marginTop: 10,
-},
-
-optionActive: {
-  backgroundColor: "#E6F7F1",
-  borderColor: "#2FBF9E",
-},
-
-optionText: {
-  fontSize: 14,
-  color: "#374151",
-},
-
-optionTextActive: {
-  color: "#2FBF9E",
-  fontWeight: "600",
-},
 
 });

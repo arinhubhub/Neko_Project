@@ -9,6 +9,8 @@ import styles from "../styles/resultStyles";
 
 export default function ResultScreen({ onBack, onSave }) {
   const [selectedCondition, setSelectedCondition] = useState(null);
+  const [selectedDisease, setSelectedDisease] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const riskData = [
     { label: "Kidney Disease", value: "Low Risk" },
@@ -18,7 +20,14 @@ export default function ResultScreen({ onBack, onSave }) {
     { label: "Feline Panleukopenia", value: "Low Risk" },
   ];
 
-  const conditions = ["Vomiting", "Diarrhea", "Lethargy"];
+  const diseases = [
+  "Chronic Kidney Disease (CKD)",
+  "FLUTD / Urolithiasis",
+  "Diabetes Mellitus",
+  "Feline Panleukopenia",
+  "Gum Disease",
+];
+
 
   return (
     <View style={styles.container}>
@@ -82,38 +91,95 @@ export default function ResultScreen({ onBack, onSave }) {
 ))}
 
         {/* ===== Recommended Approach ===== */}
-        <Text style={styles.sectionTitle}>Recommended Approach</Text>
+      {/* ===== Disease & Counseling ===== */}
+<View style={{ gap: 16 }}>
+<View style={styles.centerWrapper}>
+  {/* ===== Disease Box ===== */}
+  <View
+    style={{
+      width: 343,
+      minHeight: 204,
+      backgroundColor: "#FFFFFF",
+      borderRadius: 16,
+      padding: 16,
+    }}
+  >
+    <Text style={styles.cardTitle}>Disease</Text>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Disease Prevention</Text>
+    {/* Dropdown Header */}
+    <TouchableOpacity
+      onPress={() => setShowDropdown(!showDropdown)}
+      style={{
+        marginTop: 12,
+        padding: 14,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "#DADADA",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      <Text style={{ color: selectedDisease ? "#000" : "#9CA3AF" }}>
+        {selectedDisease || "Select disease"}
+      </Text>
+      <Text>⌄</Text>
+    </TouchableOpacity>
 
-          {/* ===== Selectable Condition ===== */}
-          {conditions.map((item) => (
-            <TouchableOpacity
-              key={item}
-              style={[
-                styles.optionItem,
-                selectedCondition === item && styles.optionActive,
-              ]}
-              onPress={() => setSelectedCondition(item)}
-            >
-              <Text
-                style={[
-                  styles.optionText,
-                  selectedCondition === item && styles.optionTextActive,
-                ]}
-              >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          ))}
+    {/* Dropdown List */}
+    {showDropdown && (
+      <View
+        style={{
+          marginTop: 8,
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: "#E5E7EB",
+          overflow: "hidden",
+        }}
+      >
+        {diseases.map((item) => (
+          <TouchableOpacity
+            key={item}
+            onPress={() => {
+              setSelectedDisease(item);
+              setShowDropdown(false);
+            }}
+            style={{
+              padding: 14,
+              backgroundColor:
+                selectedDisease === item ? "#E6F4F1" : "#FFFFFF",
+            }}
+          >
+            <Text>{item}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    )}
+  </View>
 
-          <Text style={styles.cardDesc}>
-            {selectedCondition
-              ? `Guidance for ${selectedCondition.toLowerCase()} will be shown here.`
-              : "Please select a condition to see preventive advice."}
-          </Text>
-        </View>
+
+  {/* ===== Counseling Box ===== */}
+  <View
+    style={{
+      width: 343,
+      minHeight: 204,
+      backgroundColor: "#FFFFFF",
+      borderRadius: 16,
+      padding: 16,
+      marginTop: 20 
+    }}
+  >
+    <Text style={styles.cardTitle}>Counseling</Text>
+
+    <Text style={styles.cardDesc}>
+      {selectedDisease
+        ? `Guidance and preventive care advice for ${selectedDisease} will appear here.`
+        : "Please select a disease to receive counseling guidance."}
+    </Text>
+  </View>
+</View>
+</View>
+
       </ScrollView>
 {/* ===== Save Button ===== */}
 <TouchableOpacity
