@@ -1,8 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, Image, Alert, ActivityIndicator } from 'react-native';
-// ตรวจสอบ path ของ supabaseClient ให้ถูกต้องด้วยนะครับ
+import { styles } from './Style/authstyle';
 import supabase from './config/supabaseClient'; 
+import { View, Text, TextInput, TouchableOpacity, Image, Alert, ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native'; 
 
 export default function SignUpScreen({ onNavigate }) {
     const [email, setEmail] = useState('');
@@ -25,17 +25,36 @@ export default function SignUpScreen({ onNavigate }) {
 
         try {
             // 2. ส่งข้อมูลไป Supabase (ต้องอยู่ภายในฟังก์ชัน async นี้)
+            const cleanEmail = email.trim();
             const { data, error } = await supabase.auth.signUp({
-                email: email,
+                email: cleanEmail,
                 password: password,
             });
 
-            // 3. ตรวจสอบผลลัพธ์
             if (error) {
                 Alert.alert("ERROR", error.message);
-            } else {
-                Alert.alert("SUCCESS", "Registration Success! Please check your email.");
-                // ถ้าปิด confirm email ใน supabase แล้ว ก็อาจจะสั่งให้ login หรือเปลี่ยนหน้าตรงนี้ได้เลย
+                return;
+            }
+
+            if (data?.user) {
+                // 2.1 สร้าง record ในตาราง profiles
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .insert([
+                        { 
+                            id: data.user.id,
+                            email: cleanEmail,
+                            // other fields will be null/default strictly based on DB schema defaults 
+                            // or we can add empty strings if needed, but null is usually better for "not set"
+                        }
+                    ]);
+
+                if (profileError) {
+                    console.log('Error creating profile:', profileError);
+                    // เราอาจจะไม่ block user ตรงนี้ แต่เเจ้งเตือนหรือ log ไว้
+                }
+
+                Alert.alert("SUCCESS", "Registration Success! Please login.");
             }
         } catch (err) {
             Alert.alert("ERROR", "Something went wrong.");
@@ -43,6 +62,13 @@ export default function SignUpScreen({ onNavigate }) {
             setLoading(false); // หยุดหมุนไม่ว่าจะสำเร็จหรือล้มเหลว
         }
     };
+
+
+
+
+
+
+
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -133,136 +159,3 @@ export default function SignUpScreen({ onNavigate }) {
     );
 }
 
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#fff',
-    },
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-        paddingHorizontal: 24,
-    },
-    headerContainer: {
-        alignItems: 'center',
-        marginTop: 60,
-        marginBottom: 40,
-    },
-    logoimage: {
-        width: 120,
-        height: 120,
-        marginBottom: 1,
-        resizeMode: 'contain',
-    },
-    textimage: {
-        width: 120,
-        height: 12,
-        marginTop: 1,
-        marginBottom: 1,
-        resizeMode: 'contain',
-    },
-    contentContainer: {},
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#000',
-        marginBottom: 8,
-        width: '80%',
-        alignSelf: 'center',
-    },
-    subtitle: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 32,
-        width: '80%',
-        alignSelf: 'center',
-    },
-    inputGroup: {
-        marginBottom: 20,
-    },
-    labelRow: {
-        flexDirection: 'row',
-        marginBottom: 8,
-        width: '80%',
-        alignSelf: 'center',
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#333',
-    },
-    required: {
-        color: '#ff0000',
-        fontSize: 14,
-    },
-    input: {
-        width: '80%',
-        height: 50,
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        fontSize: 16,
-        backgroundColor: '#F9F9F9',
-        color: '#333',
-        alignSelf: 'center',
-    },
-    checkboxContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 32,
-        width: '80%',
-        alignSelf: 'center',
-    },
-    checkbox: {
-        width: 20,
-        height: 20,
-        borderWidth: 2,
-        borderColor: '#E0E0E0',
-        borderRadius: 4,
-        marginRight: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    checkboxChecked: {
-        borderColor: '#2D9CDB',
-        backgroundColor: '#2D9CDB',
-    },
-    checkboxInner: {
-        width: 10,
-        height: 10,
-        backgroundColor: '#fff',
-    },
-    checkboxLabel: {
-        fontSize: 14,
-        color: '#555',
-    },
-    linkText: {
-        color: '#16A085',
-        fontWeight: '500',
-        textDecorationLine: 'underline',
-    },
-    button: {
-        backgroundColor: '#1E1E1E',
-        height: 56,
-        borderRadius: 160,
-        alignItems: 'center',
-        width: 300,
-        justifyContent: 'center',
-        marginBottom: 24,
-        alignSelf: 'center',
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-    },
-    footerText: {
-        fontSize: 14,
-        color: '#555',
-    },
-});

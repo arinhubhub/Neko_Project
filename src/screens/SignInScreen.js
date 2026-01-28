@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, Image, Alert } from 'react-native';
+import { styles } from './Style/authstyle';
 import supabase from './config/supabaseClient';
+import { View, Text, TextInput, TouchableOpacity, Image, Alert, SafeAreaView } from 'react-native';
 
 export default function SignInScreen({ onNavigate }) {
     const [email, setEmail] = useState('');
@@ -10,15 +11,16 @@ export default function SignInScreen({ onNavigate }) {
 
 const handleSignIn = async () => {
     setLoading(true);
+    const cleanEmail = email.trim();
     const { error } = await supabase.auth.signInWithPassword({
-        email: email,
+        email: cleanEmail,
         password: password,
     });
     setLoading(false);
-    const handleSignIn = () => {
-        // Just a visual check or simple handling
-        Alert.alert('Sign In Pressed', `Email: ${email}, Password: ${password}`);
-    };
+
+    if (!error) {
+        Alert.alert('Sign In Success', `Email: ${email}`);
+    }
     if (error) {
         Alert.alert("Error", error.message);
     } else {
@@ -96,110 +98,3 @@ const handleSignIn = async () => {
         </SafeAreaView>
     );
 }
-
-
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#fff',
-    },
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-        paddingHorizontal: 24,
-    },
-    headerContainer: {
-        alignItems: 'center',
-        marginTop: 60,
-        marginBottom: 40,
-    },
-    logoimage: {
-        width: 120,
-        height: 120,
-        marginBottom: 1,
-        resizeMode: 'contain',
-    },
-    textimage: {
-        width: 120,
-        height: 12,
-        marginTop: 1,
-        marginBottom: 1,
-        resizeMode: 'contain',
-    },
-    contentContainer: {
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#000',
-        marginBottom: 8,
-        width: '80%',
-        alignSelf: 'center',
-    },
-    subtitle: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 32,
-        width: '80%',
-        alignSelf: 'center',
-    },
-    inputGroup: {
-        marginBottom: 20,
-    },
-    labelRow: {
-        flexDirection: 'row',
-        marginBottom: 8,
-        width: '80%',
-        alignSelf: 'center',
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#333',
-    },
-    required: {
-        color: '#ff0000',
-        fontSize: 14,
-    },
-    input: {
-        width: '80%',
-        height: 50,
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        fontSize: 16,
-        backgroundColor: '#F9F9F9',
-        color: '#333',
-        alignSelf: 'center',
-
-    },
-    linkText: {
-        color: '#16A085',
-        fontWeight: '500',
-        textDecorationLine: 'underline',
-    },
-    button: {
-        backgroundColor: '#1E1E1E',
-        height: 56,
-        borderRadius: 160,
-        alignItems: 'center',
-        width: 300,
-        justifyContent: 'center',
-        marginBottom: 24,
-        alignSelf: 'center',
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-    },
-    footerText: {
-        fontSize: 14,
-        color: '#555',
-    },
-});
