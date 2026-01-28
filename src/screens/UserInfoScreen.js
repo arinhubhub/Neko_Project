@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator, SafeAreaView, TouchableOpaci
 import { StatusBar } from 'expo-status-bar';
 import supabase from './config/supabaseClient';
 
-export default function UserInfoScreen({ session, catId, onLogout }) {
+export default function UserInfoScreen({ session, catId, onLogout, onMissingProfile }) {
     const [loading, setLoading] = useState(true);
     const [userData, setUserData] = useState(null);
     const [catData, setCatData] = useState(null);
@@ -26,10 +26,15 @@ export default function UserInfoScreen({ session, catId, onLogout }) {
                 .single();
 
             if (userError) {
-                 // If no profile, we can't do much, maybe redirect?
-                 // For now, just log and continue
                  console.log('User profile fetch error', userError);
+                 if (onMissingProfile) onMissingProfile(); // Trigger if totally missing
+                 return;
             } else {
+                // Check if profile is 'incomplete' (e.g. no name)
+                if (!userProfile.name) {
+                    if (onMissingProfile) onMissingProfile();
+                    return;
+                }
                 setUserData(userProfile);
             }
 

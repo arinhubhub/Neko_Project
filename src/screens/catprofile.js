@@ -15,7 +15,7 @@ export default function CatProfile({ session, onNavigateToHome }) { // Receiving
     const [activityLevel, setActivityLevel] = useState('Normal'); // Low, Normal, High
 
     const handleSave = async () => {
-        // Validation (Basic)
+     
         if (!catName || !breed) {
             Alert.alert('Error', 'Please fill in all required fields.');
             return;
@@ -34,9 +34,6 @@ export default function CatProfile({ session, onNavigateToHome }) { // Receiving
                         breed: breed,
                         gender: gender,
                         birthdate: birthDate || null,
-                        // isNeutered and activityLevel are not in the schema provided in prompt, 
-                        // so we skip them or need to add columns. 
-                        // Assuming schema matches the provided image which has: id, owner_id, name, breed, gender, birthdate, created_at
                     }
                 ])
                 .select()

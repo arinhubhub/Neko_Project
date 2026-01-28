@@ -1,8 +1,10 @@
+import 'react-native-url-polyfill/auto'
 import { createClient } from '@supabase/supabase-js'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
-const supabaseKey = process.env.REACT_APP_ANON_KEY
+const supabaseUrl = 'REACT_APP_SUPABASE_UR' //เอาลิงค์ของsupabase
+const supabaseKey ='REACT_APP_ANON_KEY' //เอาkeyของsupabase
+
 
 
 const supabase = createClient(supabaseUrl, supabaseKey, {

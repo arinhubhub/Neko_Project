@@ -7,6 +7,7 @@ import CatProfile from './src/screens/catprofile';
 import UserInfoScreen from './src/screens/UserInfoScreen';
 import supabase from './src/screens/config/supabaseClient';
 
+
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('SignIn');
   const [session, setSession] = useState(null);
@@ -14,12 +15,15 @@ export default function App() {
   const [authScreen, setAuthScreen] = useState('UserInfo'); // Default to UserInfo, it will handle fetching logic
   const [catId, setCatId] = useState(null);
 
+  const navigateToSignIn = () => setCurrentScreen('SignIn');
+  const navigateToSignUp = () => setCurrentScreen('SignUp');
+
   useEffect(() => {
     // Check initial session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         console.log("Error getting session:", error.message);
-        supabase.auth.signOut(); // Force sign out if session is invalid
+        supabase.auth.signOut();
         setSession(null);
       } else {
         setSession(session);
@@ -29,19 +33,19 @@ export default function App() {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      
       if (_event === 'SIGNED_OUT') {
         setSession(null);
         setCurrentScreen('SignIn');
-        setAuthScreen('Profile'); // Reset to Profile on sign out (or UserInfo if you prefer default)
+        setAuthScreen('Profile'); 
       } else if (session) {
          setSession(session);
          if (_event === 'SIGNED_IN') {
-             setAuthScreen('UserInfo'); // Force to UserInfo on clean sign in
+             setAuthScreen('UserInfo'); 
          }
       }
     });
 
+    // Handle App State (Auto-refresh)
     const handleAppStateChange = (state) => {
       if (state === 'active') {
         supabase.auth.startAutoRefresh();
@@ -57,9 +61,9 @@ export default function App() {
       appStateSubscription.remove();
     };
   }, []);
+  
 
-  const navigateToSignIn = () => setCurrentScreen('SignIn');
-  const navigateToSignUp = () => setCurrentScreen('SignUp');
+
 
   if (loading) {
      return (
@@ -76,6 +80,7 @@ export default function App() {
             session={session} 
             catId={catId} 
             onLogout={() => supabase.auth.signOut()} 
+            onMissingProfile={() => setAuthScreen('Profile')}
          />;
       }
       if (authScreen === 'CatProfile') {
@@ -94,6 +99,7 @@ export default function App() {
             session={session} 
             catId={catId} 
             onLogout={() => supabase.auth.signOut()} 
+            onMissingProfile={() => setAuthScreen('Profile')}
          />;
   }
 
@@ -105,6 +111,35 @@ export default function App() {
       ) : (
         <SignUpScreen onNavigate={navigateToSignIn} />
       )}
+      {/* ===== หน้า Home (เพิ่มใหม่) ===== */}
+      {currentScreen === 'Home' && (
+        <HomeScreen 
+          onLogout={navigateToSignIn} 
+          onAssess={navigateToResult}
+          onPhotoAssess={navigateToAssessment}
+        />
+      )}
+      {currentScreen === 'Assessment' && (
+  <AssessmentScreen
+    onBack={navigateToHome}
+    onResult={navigateToResult}
+  />
+    )}
+    {currentScreen === 'Result' && (
+  <ResultScreen onSave={navigateToHomeOld} />
+)}
+{currentScreen === 'HomeOld' && (
+  <HomeScreenOld
+  onAssess={navigateToResult}
+  onLogDaily={navigateToLogDaily}
+  />
+)}
+{currentScreen === "LogDaily" && (
+  <LogDailyNormal />
+)}
+
+    
+
     </>
   );
 }
