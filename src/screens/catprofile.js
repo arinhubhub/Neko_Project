@@ -16,7 +16,7 @@ export default function CatProfile({ session, onNavigateToHome }) { // Receiving
 
     const handleSave = async () => {
      
-        if (!catName || !breed) {
+        if (!catName || !breed || !birthDate || !currentWeight || !baselineWeight || !gender || !isNeutered || !activityLevel) {
             Alert.alert('Error', 'Please fill in all required fields.');
             return;
         }

@@ -202,30 +202,6 @@ statusList: {
 statusItem: {
   flexDirection: "row",
   alignItems: "center",
-},
-
-statusItemText: {
-  fontFamily: "Inter-Medium",
-  fontSize: 12,
-  color: "#0C5A58",
-},
-/* ===== GETTING STARTED ===== */
-gettingStartedSection: {
-  marginTop: 24,
-  paddingHorizontal: 24,
-  width: "100%",
-},
-
-gettingStartedTitle: {
-  fontFamily: "Inter-Medium",
-  fontSize: 12,
-  color: "#0C5A58",
-  marginBottom: 12,
-},
-
-statusItem: {
-  flexDirection: "row",
-  alignItems: "center",
   marginBottom: 10,
 },
 

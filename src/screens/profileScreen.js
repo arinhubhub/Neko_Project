@@ -65,6 +65,10 @@ export default function ProfileScreen({ session, onNavigateToCatProfile }) {
                 throw new Error("Invalid date format. Please use YYYY-MM-DD (e.g., 1999-01-31).");
             }
 
+            if (!username || !phone || !gender || !birthDate) {
+                throw new Error("Please fill in all required fields.");
+            }
+
             // 3. เตรียมข้อมูล (สร้างตัวแปร updates ตรงนี้ก่อน!)
             const updates = {
                 id: session.user.id,
