@@ -11,7 +11,7 @@ export default function BottomNav({ current, onNavigate }) {
         style={styles.item}
         onPress={() => onNavigate("Home")}
       >
-        <Ionicons name="home-outline" size={22} color="#484C52" />
+        <Ionicons name="home-outline" size={30} color="#484C52" />
         <Text style={styles.label}>Home</Text>
       </TouchableOpacity>
 
@@ -20,7 +20,7 @@ export default function BottomNav({ current, onNavigate }) {
         style={styles.item}
         onPress={() => onNavigate("Calendar")}
       >
-        <Feather name="calendar" size={22} color="#484C52" />
+        <Feather name="calendar" size={30} color="#484C52" />
         <Text style={styles.label}>Calendar</Text>
       </TouchableOpacity>
 
@@ -30,7 +30,7 @@ export default function BottomNav({ current, onNavigate }) {
         onPress={() => onNavigate("Camera")}
       >
         <View style={styles.cameraButton}>
-          <Ionicons name="camera" size={26} color="#FFFFFF" />
+          <Ionicons name="camera" size={30} color="#FFFFFF" />
         </View>
       </TouchableOpacity>
 
@@ -39,7 +39,7 @@ export default function BottomNav({ current, onNavigate }) {
         style={styles.item}
         onPress={() => onNavigate("Overview")}
       >
-        <MaterialIcons name="bar-chart" size={22} color="#484C52" />
+        <MaterialIcons name="bar-chart" size={33} color="#484C52" />
         <Text style={styles.label}>Overview</Text>
       </TouchableOpacity>
 
@@ -48,7 +48,7 @@ export default function BottomNav({ current, onNavigate }) {
         style={styles.item}
         onPress={() => onNavigate("Community")}
       >
-        <Ionicons name="people-outline" size={22} color="#484C52" />
+        <Ionicons name="people-outline" size={30} color="#484C52" />
         <Text style={styles.label}>Community</Text>
       </TouchableOpacity>
 
@@ -58,17 +58,18 @@ export default function BottomNav({ current, onNavigate }) {
 
 const styles = StyleSheet.create({
   container: {
-    width: 390,
-    height: 74,
+    width: "100%",
+   height: 90,
     backgroundColor: "#FFFFFF",
-    borderRadius: 10,
+    borderTopLeftRadius: 35,
+    borderTopRightRadius: 35,
 
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-
+    
     position: "absolute",
-    bottom: 12,
+    bottom: 0,
     alignSelf: "center",
 
     shadowColor: "#000",
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
   },
 
   cameraWrapper: {
-    marginTop: -20,
+    marginTop: -10,
   },
 
   cameraButton: {
@@ -103,7 +104,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
 
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 6,

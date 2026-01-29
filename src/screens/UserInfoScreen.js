@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import supabase from './config/supabaseClient';
+import { Ionicons } from "@expo/vector-icons";
 
-export default function UserInfoScreen({ session, catId, onLogout, onMissingProfile }) {
+export default function UserInfoScreen({ session, catId, onLogout, onMissingProfile, onBack }) { // Accept onBack
     const [loading, setLoading] = useState(true);
     const [userData, setUserData] = useState(null);
     const [catData, setCatData] = useState(null);
@@ -97,9 +98,18 @@ export default function UserInfoScreen({ session, catId, onLogout, onMissingProf
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar style="auto" />
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-                <Text style={styles.headerTitle}>Details Summary</Text>
+             {/* Header with Back Button */}
+            <View style={styles.header}>
+                {onBack && (
+                    <TouchableOpacity onPress={onBack} style={styles.backButton}>
+                        <Ionicons name="chevron-back" size={28} color="#2F6A62" />
+                    </TouchableOpacity>
+                )}
+                <Text style={styles.headerTitle}>{onBack ? "Profile Settings" : "Details Summary"}</Text>
+                <View style={{width: 28}} /> 
+            </View>
 
+            <ScrollView contentContainerStyle={styles.scrollContent}>
                 {/* User Section */}
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>User Information</Text>
@@ -168,13 +178,22 @@ const styles = StyleSheet.create({
     scrollContent: {
         padding: 20,
     },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: 10,
+        paddingBottom: 10,
+        backgroundColor: '#F5F5F5',
+    },
     headerTitle: {
-        fontSize: 24,
+        fontSize: 20,
         fontWeight: 'bold',
         color: '#2F6A62',
-        marginBottom: 20,
-        textAlign: 'center',
-        marginTop: 20,
+    },
+    backButton: {
+        padding: 5,
     },
     card: {
         backgroundColor: '#FFF',
