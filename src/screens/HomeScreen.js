@@ -20,7 +20,7 @@ export default function HomeScreen({ onAssess }) {
         profileName={null}
       />
 
-      {/* ===== Content ===== */}
+      {/* Content  */}
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 24 }}

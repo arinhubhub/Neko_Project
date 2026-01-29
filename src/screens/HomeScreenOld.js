@@ -33,7 +33,7 @@ export default function HomeScreen({ onAssess,onLogDaily}) {
   </View>
 </View>
 
-        {/* ===== Text Section ===== */}
+        {/* = Text Section == */}
         <View style={styles.textSection}>
           <Text style={styles.welcomeTitle}>
             Welcome to NekoCare 🐾

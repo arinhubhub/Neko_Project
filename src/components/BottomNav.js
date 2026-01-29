@@ -111,7 +111,7 @@ export default function BottomNav({ current, onNavigate }) {
 
 const styles = StyleSheet.create({
   container: {
-    width: width - 24, // ✅ responsive
+    width: width - 24, 
     height: 74,
     backgroundColor: "#FFFFFF",
     borderRadius: 16,

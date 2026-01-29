@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     color: "#B4B4B4",
   },
 
-  /* ====== ASSESS BUTTON ====== */
+  /* ====== ASSESS BUTTON ==== */
   assessButton: {
     width: 360,
     height: 52,

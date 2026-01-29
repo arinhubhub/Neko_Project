@@ -7,7 +7,7 @@ export default StyleSheet.create({
     backgroundColor: "#B2E1DB",
   },
 
-  /* ===== Header ===== */
+  /*  Header  */
   headerBg: {
     height: 64,
     paddingHorizontal: 16,

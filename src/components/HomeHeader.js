@@ -23,7 +23,7 @@ export default function HomeHeader({
         NEKO CARE
       </Text>
 
-      {/* ขวา: แจ้งเตือน + ตั้งค่า */}
+      {/*  แจ้งเตือน + ตั้งค่า */}
       <View style={styles.iconGroup}>
         <TouchableOpacity
           style={styles.iconBtn}
