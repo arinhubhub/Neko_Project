@@ -27,13 +27,11 @@ export default function HomeScreen({ onAssess,onLogDaily}) {
       >
         {/* ===== Profile Section ===== */}
         <View style={styles.profileSection}>
-          <View style={styles.profileOuter}>
-            <Image
-              source={require("../../assets/makky.jpg")}
-              style={styles.profileInner}
-            />
-          </View>
-        </View>
+  <View style={styles.profileOuter}>
+    {/* 🔹 Placeholder โปรไฟล์ (รอ backend / Supabase) */}
+    <View style={styles.profileInnerPlaceholder} />
+  </View>
+</View>
 
         {/* ===== Text Section ===== */}
         <View style={styles.textSection}>
@@ -133,7 +131,8 @@ export default function HomeScreen({ onAssess,onLogDaily}) {
       <BottomNav
         current="Home"
         onNavigate={(screen) => {
-          console.log("Go to", screen);
+            if (screen === "Home") navigateToHomeOld();
+            if (screen === "Calendar") navigateToCalendar();
         }}
       />
     </View>

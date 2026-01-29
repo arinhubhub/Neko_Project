@@ -1,311 +1,256 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
-  /* ====== หน้า HOME ====== */
+export default StyleSheet.create({
+  /* ===== Screen ===== */
   container: {
     flex: 1,
-    backgroundColor: "#B2E1DB", // พื้นหลังหน้า HOME
+    backgroundColor: "#B2E1DB",
   },
 
-  /* ====== HEADER ====== */
+  /* ===== Header ===== */
   headerBg: {
-    height: 77,
-    width: "100%",
-    backgroundColor: "rgba(225, 246, 243, 0.45)", // B0DDD7 45%
+    height: 64,
+    paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
+    backgroundColor: "#B2E1DB",
   },
 
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-  },
-
-  title: {
-    fontSize: 24,
+  headerTitle: {
+    fontSize: 18,
     fontWeight: "700",
-    color: "#677684", // Nekocare
+    color: "#194d4a",
+    letterSpacing: 1,
+  },
+
+  avatarPlaceholder: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#E3F4F2",
   },
 
   iconGroup: {
     flexDirection: "row",
-    gap: 12,
+    gap: 8,
   },
 
   iconBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.6)",
+    backgroundColor: "#E3F4F2",
     alignItems: "center",
     justifyContent: "center",
   },
 
-  /* ====== PROFILE SECTION ====== */
+  /* ===== Profile Section ===== */
   profileSection: {
+    marginTop: 24,
+    marginBottom: 16,
     alignItems: "center",
-    marginTop: 20,
   },
 
   profileOuter: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     backgroundColor: "#E0E0E0",
     justifyContent: "center",
     alignItems: "center",
   },
 
   profileInner: {
-    width: 171.43,
-    height: 171.43,
-    borderRadius: 85.715,
-    resizeMode: "cover",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "#E8F6F4", // placeholder
   },
 
-  /* ====== TEXT SECTION ====== */
+  /* ===== Text Section ===== */
   textSection: {
     alignItems: "center",
-    marginTop: 24,
     paddingHorizontal: 24,
+    marginBottom: 24,
   },
 
   welcomeTitle: {
-    fontFamily: "Inter-Bold",
-    fontSize: 26,
-    color: "#000000",
-    textAlign: "center",
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: 8,
   },
 
   welcomeDesc: {
-    marginTop: 8,
-    fontFamily: "Inter-Light",
-    fontSize: 14,
-    color: "#000000",
+    fontSize: 15,
+    color: "#444",
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: 22,
+    marginBottom: 12,
   },
 
   statusText: {
-    marginTop: 8,
-    fontFamily: "Inter-Medium",
-    fontSize: 12,
-    color: "#B4B4B4",
+    fontSize: 13,
+    color: "#888",
   },
 
-  /* ====== ASSESS BUTTON ====== */
+  /* ===== Assess Button ===== */
   assessButton: {
-    width: 360,
-    height: 52,
-    marginTop: 32,
+    width: "85%",
     alignSelf: "center",
-    backgroundColor: "rgba(63,168,164,0.8)", // 3FA8A4 80%
-    borderRadius: 20,
-    justifyContent: "center",
+    backgroundColor: "#147C78",
+    paddingVertical: 16,
+    borderRadius: 30,
     alignItems: "center",
-
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    marginBottom: 20,
   },
 
   assessButtonText: {
-    fontFamily: "Inter-SemiBold",
-    fontSize: 18,
     color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
   },
-  /* ====== PHOTO CARD ====== *//* ===== Photo Health Check Card ===== */
-photoCard: {
-  width: 368,
-  height: 83,
-  marginTop: 24,
-  alignSelf: "center",
-  backgroundColor: "rgba(154,208,206,0.7)", // 9AD0CE 70%
-  borderRadius: 20,
-  paddingHorizontal: 16,
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
 
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.12,
-  shadowRadius: 4,
-  elevation: 3,
-},
+  /* ===== Photo Health Card ===== */
+  photoCard: {
+    width: "90%",
+    alignSelf: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
 
-photoLeft: {
-  flexDirection: "row",
-  alignItems: "center",
-  flex: 1,
-},
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
 
-photoIcon: {
-  fontSize: 28,
-  marginRight: 10,
-},
+  photoLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
 
-photoTextGroup: {
-  flexShrink: 1,
-},
+  photoIcon: {
+    fontSize: 28,
+    marginRight: 12,
+  },
 
-photoTitle: {
-  fontFamily: "Inter-SemiBold",
-  fontSize: 14,
-  color: "rgba(12,90,88,0.93)", // 0C5A58 93%
-},
+  photoTextGroup: {
+    flexShrink: 1,
+  },
 
-photoDesc: {
-  marginTop: 4,
-  fontFamily: "Inter-Regular",
-  fontSize: 10,
-  color: "#565619",
-},
+  photoTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
 
-photoBtn: {
-  width: 101,
-  height: 38,
-  backgroundColor: "#0C5A58",
-  borderRadius: 12,
-  justifyContent: "center",
-  alignItems: "center",
-},
+  photoDesc: {
+    fontSize: 12,
+    color: "#666",
+  },
 
-photoBtnText: {
-  fontFamily: "Inter-Bold",
-  fontSize: 10,
-  color: "#FFFFFF",
-},
-/* ===== GETTING STARTED ===== */
-gettingStartedSection: {
-  marginTop: 24,
-  paddingHorizontal: 24,
-  width: "100%",
-},
+  photoBtn: {
+    backgroundColor: "#E3F4F2",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
 
-gettingStartedTitle: {
-  fontFamily: "Inter-Medium",
-  fontSize: 12,
-  color: "#0C5A58",
-  marginBottom: 12,
-},
+  photoBtnText: {
+    fontSize: 12,
+    color: "#147C78",
+    fontWeight: "600",
+  },
 
-statusList: {
-  gap: 8,
-},
+  /* ===== Getting Started ===== */
+  gettingStartedSection: {
+    width: "90%",
+    alignSelf: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 24,
+  },
 
-statusItem: {
-  flexDirection: "row",
-  alignItems: "center",
-},
+  gettingStartedTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 12,
+  },
 
-statusItemText: {
-  fontFamily: "Inter-Medium",
-  fontSize: 12,
-  color: "#0C5A58",
-},
-/* ===== GETTING STARTED ===== */
-gettingStartedSection: {
-  marginTop: 24,
-  paddingHorizontal: 24,
-  width: "100%",
-},
+  statusItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
 
-gettingStartedTitle: {
-  fontFamily: "Inter-Medium",
-  fontSize: 12,
-  color: "#0C5A58",
-  marginBottom: 12,
-},
+  checkCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: "#147C78",
+    marginRight: 10,
+  },
 
-statusItem: {
-  flexDirection: "row",
-  alignItems: "center",
-  marginBottom: 10,
-},
+  checkDone: {
+    backgroundColor: "#147C78",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-statusItemText: {
-  fontFamily: "Inter-Medium",
-  fontSize: 12,
-  color: "#0C5A58",
-},
+  checkIcon: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "700",
+  },
 
-/* ===== Checkbox ===== */
-checkCircle: {
-  width: 16,
-  height: 16,
-  borderRadius: 8,
-  borderWidth: 1.5,
-  borderColor: "#0C5A58",
-  marginRight: 8,
-  alignItems: "center",
-  justifyContent: "center",
-},
+  statusItemText: {
+    fontSize: 13,
+    color: "#333",
+  },
 
-checkDone: {
-  backgroundColor: "#0C5A58",
-},
+  /* ===== Smart Monitoring ===== */
+  smartCard: {
+    width: "90%",
+    alignSelf: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 140, // ⭐ กัน BottomNav
+  },
 
-checkIcon: {
-  fontSize: 10,
-  color: "#FFFFFF",
-  fontWeight: "bold",
-},
+  smartTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
 
-smartCard: {
-  width: 360,
-  height: 74,
-  backgroundColor: 'rgba(239, 255, 254, 0.19)', // EFFFFE 19%
-  borderRadius: 16,
-  paddingHorizontal: 16,
-  paddingVertical: 12,
-  flexDirection: 'row',
-  alignItems: 'center',
-  alignSelf: 'center',  
-  marginTop: 16,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.08,
-  shadowRadius: 4,
-  elevation: 3,
-  marginTop: 16,
-},
+  smartDesc: {
+    fontSize: 12,
+    color: "#666",
+  },
 
-smartTitle: {
-  fontFamily: 'Inter-SemiBold',
-  fontSize: 14,
-  color: 'rgba(12, 90, 88, 0.93)',
-},
+  setupBtn: {
+    backgroundColor: "#147C78",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginLeft: 12,
+  },
 
-smartDesc: {
-  fontFamily: 'Inter-Regular',
-  fontSize: 10,
-  color: '#565619',
-  marginTop: 4,
-  width: 220,
-},
-
-setupBtn: {
-  width: 101,
-  height: 33.88,
-  backgroundColor: 'rgba(20, 124, 120, 0.33)',
-  borderRadius: 12,
-  justifyContent: 'center',
-  alignItems: 'center',
-},
-
-setupBtnText: {
-  fontFamily: 'Inter-Bold',
-  fontSize: 10,
-  color: '#FFFFFF',
-},
-
-
+  setupBtnText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "600",
+  },
 });
-
-export default styles;

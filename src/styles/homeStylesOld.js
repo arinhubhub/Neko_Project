@@ -65,6 +65,7 @@ const styles = StyleSheet.create({
     borderRadius: 85.715,
     resizeMode: "cover",
   },
+  
 
   /* ====== TEXT SECTION ====== */
   textSection: {

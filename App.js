@@ -8,10 +8,11 @@ import ResultScreen from "./src/screens/ResultScreen";
 import AssessmentScreen from "./src/screens/AssessmentScreen";
 import HomeScreenOld from "./src/screens/HomeScreenOld";
 import LogDailyNormal from "./src/screens/LogDailyNormal";
+import CalendarScreen from "./src/screens/CalendarScreen";
 
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState('Home');
+  const [currentScreen, setCurrentScreen] = useState('SignIn');
 
   const navigateToSignIn = () => setCurrentScreen('SignIn');
   const navigateToSignUp = () => setCurrentScreen('SignUp');
@@ -20,6 +21,7 @@ export default function App() {
   const navigateToAssessment = () => setCurrentScreen('Assessment');
   const navigateToHomeOld = () => setCurrentScreen("HomeOld");
   const navigateToLogDaily = () => setCurrentScreen("LogDaily");
+  const navigateToCalendar = () => setCurrentScreen("Calendar");
 
 
 useEffect(() => {
@@ -72,6 +74,9 @@ useEffect(() => {
 )}
 {currentScreen === "LogDaily" && (
   <LogDailyNormal />
+)}
+{currentScreen === "Calendar" && (
+  <CalendarScreen />
 )}
 
     
