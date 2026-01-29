@@ -35,19 +35,27 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState('SignIn');
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [authScreen, setAuthScreen] = useState('LogDaily'); // ✅ เปลี่ยน Default เป็น LogDaily
+  const [authScreen, setAuthScreen] = useState('Home'); 
+  const [catId, setCatId] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false); // ✅ Track if checking profile
 
-  // ... (navigation functions)
+  // Fix Logout: Should actually sign out
+  const handleSignOut = async () => {
+      setLoading(true);
+      await supabase.auth.signOut();
+      setSession(null);
+      setAuthScreen('Home'); // Reset for next login
+      setCurrentScreen('SignIn');
+      setLoading(false);
+  };
 
-  // ... (useEffect hook)
-  
-  // ... (navigation functions restored previously)
-  const navigateToSignIn = () => setCurrentScreen('SignIn');
+  const navigateToSignIn = () => {
+      handleSignOut(); // Logout if navigating to SignIn
+  };
   const navigateToSignUp = () => setCurrentScreen('SignUp');
   
-  // ✅ 2. สร้างฟังก์ชันสำหรับกระโดดไปหน้า LogDaily
-  const navigateToLogDaily = () => setCurrentScreen('LogDaily');
-  const navigateToHome = () => setCurrentScreen('Home');
+  const navigateToLogDaily = () => setAuthScreen('LogDaily');
+  const navigateToHome = () => setAuthScreen('Home');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session }, error }) => {
@@ -56,19 +64,70 @@ export default function App() {
         setSession(null);
       } else {
         setSession(session);
+        if (session) checkUserProfileStatus(session); // Check if new user
       }
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session) {
+          checkUserProfileStatus(session);
+      } else {
+          setAuthScreen('Home'); // Reset
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  if (!fontsLoaded) {
-      return <ActivityIndicator />;
+  // Check if user has profile and cat
+  const checkUserProfileStatus = async (session) => {
+      if (!session?.user) return;
+      
+      try {
+          setProfileLoading(true); // Start check
+          // 1. Check Profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (!profile || !profile.name) {
+              setAuthScreen('Profile'); // Go to Profile fill
+              return;
+          }
+
+          // 2. Check Cat
+          const { data: cat } = await supabase
+            .from('cats')
+            .select('id')
+            .eq('owner_id', session.user.id)
+            .limit(1)
+            .single();
+
+          if (!cat) {
+              setAuthScreen('CatProfile'); // Go to Cat Profile
+              return;
+          }
+          
+          // If all good, explicitly set to Home
+          setAuthScreen('Home'); 
+      } catch (err) {
+          console.log("Check status error:", err);
+      } finally {
+          setProfileLoading(false);
+      }
+  };
+
+
+  if (!fontsLoaded || loading || (session && profileLoading)) { // ✅ Wait for profile check if session exists
+      return (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#00695C" />
+          </View>
+      );
   }
 
   // ส่วนจัดการ Session (ถ้าล็อกอินแล้ว)
@@ -85,22 +144,23 @@ export default function App() {
             catId={catId} 
             onLogout={() => supabase.auth.signOut()} 
             onMissingProfile={() => setAuthScreen('Profile')}
+            onBack={() => setAuthScreen('Home')} // ✅ Back button support
          />;
       }
       
-      // ✅ เพิ่มเงื่อนไข LogDaily
       if (authScreen === 'LogDaily') {
          return <LogDailyNormal 
             session={session}
-            onBack={() => setAuthScreen('Home')} // กด Back ให้ไป Home
+            onBack={() => setAuthScreen('Home')} 
          />;
       }
 
-      // ✅ Default หรือ Home
+      // ✅ Default Home
       return <HomeScreen 
           onLogout={navigateToSignIn} 
           onLogDaily={() => setAuthScreen('LogDaily')}
           onAssess={() => {/* Logic for assessment */}}
+          onSetting={() => setAuthScreen('UserInfo')} // ✅ Go to Settings (UserInfo)
       />;
   }
 

@@ -4,283 +4,200 @@ const styles = StyleSheet.create({
   /* ====== หน้า HOME ====== */
   container: {
     flex: 1,
-    backgroundColor: "#B2E1DB", // พื้นหลังหน้า HOME
+    backgroundColor: "transparent", // ✅ Remove solid bg to see main texture
   },
 
   /* ====== HEADER ====== */
   headerBg: {
-    height: 77,
+    height: 60,
     width: "100%",
-    backgroundColor: "rgba(225, 246, 243, 0.45)", // B0DDD7 45%
+    backgroundColor: "transparent", 
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
 
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  titleContainer: {
+     flexDirection: 'row',
+     alignItems: 'center',
+     gap: 5
   },
 
   title: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: "700",
-    color: "#677684", // Nekocare
+    color: "#4A5568", // Dark Gray
+    letterSpacing: 1,
   },
 
   iconGroup: {
     flexDirection: "row",
-    gap: 12,
+    gap: 15,
   },
 
   iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.6)",
-    alignItems: "center",
-    justifyContent: "center",
+    padding: 5,
   },
 
-  /* ====== PROFILE SECTION ====== */
-  profileSection: {
-    alignItems: "center",
-    marginTop: 20,
+  /* ====== HERO SECTION (Circle Cat) ====== */
+  heroSection: {
+      alignItems: 'center',
+      marginTop: 20,
+      marginBottom: 20,
+  },
+  
+  circleCatContainer: {
+      width: 220,
+      height: 220,
+      borderRadius: 110,
+      backgroundColor: 'rgba(153, 213, 207, 0.4)', // Slightly transparent green
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 15,
+      position: 'relative',
+  },
+  
+  circleCat: {
+      width: 190,
+      height: 190,
+      borderRadius: 95,
+      borderWidth: 4,
+      borderColor: '#FFF',
   },
 
-  profileOuter: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: "#E0E0E0",
-    justifyContent: "center",
-    alignItems: "center",
+  loveIcon: {
+      position: 'absolute',
+      bottom: 20,
+      right: 20,
+      backgroundColor: '#4AA99C',
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 3,
+      borderColor: '#FFF',
   },
 
-  profileInner: {
-    width: 171.43,
-    height: 171.43,
-    borderRadius: 85.715,
-    resizeMode: "cover",
+  heroTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: '#000',
+      textAlign: 'center',
+      width: 250,
+      lineHeight: 32,
   },
 
-  /* ====== TEXT SECTION ====== */
-  textSection: {
-    alignItems: "center",
-    marginTop: 24,
-    paddingHorizontal: 24,
+  lastCheckText: {
+      fontSize: 12,
+      color: '#A0AEC0',
+      marginTop: 5,
   },
 
-  welcomeTitle: {
-    fontFamily: "Inter-Bold",
-    fontSize: 26,
-    color: "#000000",
-    textAlign: "center",
+  /* ====== ACTION BUTTONS ====== */
+  actionContainer: {
+      paddingHorizontal: 20,
+      alignItems: 'center',
   },
 
-  welcomeDesc: {
-    marginTop: 8,
-    fontFamily: "Inter-Light",
-    fontSize: 14,
-    color: "#000000",
-    textAlign: "center",
-    lineHeight: 20,
-  },
-
-  statusText: {
-    marginTop: 8,
-    fontFamily: "Inter-Medium",
-    fontSize: 12,
-    color: "#B4B4B4",
-  },
-
-  /* ====== ASSESS BUTTON ====== */
   assessButton: {
-    width: 360,
-    height: 52,
-    marginTop: 32,
-    alignSelf: "center",
-    backgroundColor: "rgba(63,168,164,0.8)", // 3FA8A4 80%
+    width: '100%',
+    height: 55,
+    backgroundColor: "#64B5B0", // Teal color
     borderRadius: 20,
+    flexDirection: 'row',
     justifyContent: "center",
     alignItems: "center",
-
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    marginBottom: 15,
+    // Remove shadow box effect
   },
 
   assessButtonText: {
-    fontFamily: "Inter-SemiBold",
     fontSize: 18,
+    fontWeight: "bold",
     color: "#FFFFFF",
+    marginLeft: 10,
   },
-  /* ====== PHOTO CARD ====== *//* ===== Photo Health Check Card ===== */
-photoCard: {
-  width: 368,
-  height: 83,
-  marginTop: 24,
-  alignSelf: "center",
-  backgroundColor: "rgba(154,208,206,0.7)", // 9AD0CE 70%
-  borderRadius: 20,
-  paddingHorizontal: 16,
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
 
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.12,
-  shadowRadius: 4,
-  elevation: 3,
-},
+  /* ====== PHOTO CARD ====== */
+  photoCard: {
+    width: '100%',
+    height: 90,
+    backgroundColor: "rgba(178, 223, 219, 0.3)", // More transparent
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
 
-photoLeft: {
-  flexDirection: "row",
-  alignItems: "center",
-  flex: 1,
-},
+  
 
-photoIcon: {
-  fontSize: 28,
-  marginRight: 10,
-},
+  photoTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2D6A64",
+    marginBottom: 5,
+  },
 
-photoTextGroup: {
-  flexShrink: 1,
-},
+  photoDesc: {
+    fontSize: 11,
+    color: "#565619",
+  },
+  
+  photoBtn: {
+    backgroundColor: "#00796B",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  
+  photoBtnText: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#FFF",
+  },
 
-photoTitle: {
-  fontFamily: "Inter-SemiBold",
-  fontSize: 14,
-  color: "rgba(12,90,88,0.93)", // 0C5A58 93%
-},
-
-photoDesc: {
-  marginTop: 4,
-  fontFamily: "Inter-Regular",
-  fontSize: 10,
-  color: "#565619",
-},
-
-photoBtn: {
-  width: 101,
-  height: 38,
-  backgroundColor: "#0C5A58",
-  borderRadius: 12,
-  justifyContent: "center",
-  alignItems: "center",
-},
-
-photoBtnText: {
-  fontFamily: "Inter-Bold",
-  fontSize: 10,
-  color: "#FFFFFF",
-},
-/* ===== GETTING STARTED ===== */
-gettingStartedSection: {
-  marginTop: 24,
-  paddingHorizontal: 24,
-  width: "100%",
-},
-
-gettingStartedTitle: {
-  fontFamily: "Inter-Medium",
-  fontSize: 12,
-  color: "#0C5A58",
-  marginBottom: 12,
-},
-
-statusList: {
-  gap: 8,
-},
-
-statusItem: {
-  flexDirection: "row",
-  alignItems: "center",
-  marginBottom: 10,
-},
-
-statusItemText: {
-  fontFamily: "Inter-Medium",
-  fontSize: 12,
-  color: "#0C5A58",
-},
-
-/* ===== Checkbox ===== */
-checkCircle: {
-  width: 16,
-  height: 16,
-  borderRadius: 8,
-  borderWidth: 1.5,
-  borderColor: "#0C5A58",
-  marginRight: 8,
-  alignItems: "center",
-  justifyContent: "center",
-},
-
-checkDone: {
-  backgroundColor: "#0C5A58",
-},
-
-checkIcon: {
-  fontSize: 10,
-  color: "#FFFFFF",
-  fontWeight: "bold",
-},
-
-smartCard: {
-  width: 360,
-  height: 74,
-  backgroundColor: 'rgba(239, 255, 254, 0.19)', // EFFFFE 19%
-  borderRadius: 16,
-  paddingHorizontal: 16,
-  paddingVertical: 12,
-  flexDirection: 'row',
-  alignItems: 'center',
-  alignSelf: 'center',  
-  marginTop: 16,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.08,
-  shadowRadius: 4,
-  elevation: 3,
-  marginTop: 16,
-},
-
-smartTitle: {
-  fontFamily: 'Inter-SemiBold',
-  fontSize: 14,
-  color: 'rgba(12, 90, 88, 0.93)',
-},
-
-smartDesc: {
-  fontFamily: 'Inter-Regular',
-  fontSize: 10,
-  color: '#565619',
-  marginTop: 4,
-  width: 220,
-},
-
-setupBtn: {
-  width: 101,
-  height: 33.88,
-  backgroundColor: 'rgba(20, 124, 120, 0.33)',
-  borderRadius: 12,
-  justifyContent: 'center',
-  alignItems: 'center',
-},
-
-setupBtnText: {
-  fontFamily: 'Inter-Bold',
-  fontSize: 10,
-  color: '#FFFFFF',
-},
-
+  /* ====== LOG DAILY CARD (Image Background) ====== */
+  dailyLogCard: {
+      width: '100%',
+      height: 150,
+      borderRadius: 20,
+      overflow: 'hidden',
+      marginBottom: 100, 
+      // Remove elevation to prevent shadow box artifact
+  },
+  
+  dailyLogBg: {
+      width: '100%',
+      height: '100%',
+      justifyContent: 'center', 
+      alignItems: 'center',    
+      padding: 20,
+  },
+  
+  dailyLogTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: '#FFF',
+      textAlign: 'center', 
+      textShadowColor: 'rgba(0,0,0,0.7)',
+      textShadowOffset: {width: 0, height: 1},
+      textShadowRadius: 5,
+      marginBottom: 5,
+  },
+  
+  dailyLogDesc: {
+     fontSize: 14,
+     color: '#F1F8E9',
+     textAlign: 'center',
+     textShadowColor: 'rgba(0,0,0,0.7)',
+     textShadowOffset: {width: 0, height: 1},
+     textShadowRadius: 5,
+  }
 
 });
 
