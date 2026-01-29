@@ -1,18 +1,38 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
 import { Ionicons, MaterialIcons, Feather } from "@expo/vector-icons";
 
+const { width } = Dimensions.get("window");
+
 export default function BottomNav({ current, onNavigate }) {
+  const isActive = (name) => current === name;
+
   return (
     <View style={styles.container}>
-      
       {/* Home */}
       <TouchableOpacity
         style={styles.item}
         onPress={() => onNavigate("Home")}
       >
-        <Ionicons name="home-outline" size={22} color="#484C52" />
-        <Text style={styles.label}>Home</Text>
+        <Ionicons
+          name="home-outline"
+          size={22}
+          color={isActive("Home") ? "#147C78" : "#484C52"}
+        />
+        <Text
+          style={[
+            styles.label,
+            isActive("Home") && styles.activeLabel,
+          ]}
+        >
+          Home
+        </Text>
       </TouchableOpacity>
 
       {/* Calendar */}
@@ -20,14 +40,26 @@ export default function BottomNav({ current, onNavigate }) {
         style={styles.item}
         onPress={() => onNavigate("Calendar")}
       >
-        <Feather name="calendar" size={22} color="#484C52" />
-        <Text style={styles.label}>Calendar</Text>
+        <Feather
+          name="calendar"
+          size={22}
+          color={isActive("Calendar") ? "#147C78" : "#484C52"}
+        />
+        <Text
+          style={[
+            styles.label,
+            isActive("Calendar") && styles.activeLabel,
+          ]}
+        >
+          Calendar
+        </Text>
       </TouchableOpacity>
 
       {/* Camera */}
       <TouchableOpacity
         style={styles.cameraWrapper}
         onPress={() => onNavigate("Camera")}
+        activeOpacity={0.85}
       >
         <View style={styles.cameraButton}>
           <Ionicons name="camera" size={26} color="#FFFFFF" />
@@ -39,8 +71,19 @@ export default function BottomNav({ current, onNavigate }) {
         style={styles.item}
         onPress={() => onNavigate("Overview")}
       >
-        <MaterialIcons name="bar-chart" size={22} color="#484C52" />
-        <Text style={styles.label}>Overview</Text>
+        <MaterialIcons
+          name="bar-chart"
+          size={22}
+          color={isActive("Overview") ? "#147C78" : "#484C52"}
+        />
+        <Text
+          style={[
+            styles.label,
+            isActive("Overview") && styles.activeLabel,
+          ]}
+        >
+          Overview
+        </Text>
       </TouchableOpacity>
 
       {/* Community */}
@@ -48,20 +91,30 @@ export default function BottomNav({ current, onNavigate }) {
         style={styles.item}
         onPress={() => onNavigate("Community")}
       >
-        <Ionicons name="people-outline" size={22} color="#484C52" />
-        <Text style={styles.label}>Community</Text>
+        <Ionicons
+          name="people-outline"
+          size={22}
+          color={isActive("Community") ? "#147C78" : "#484C52"}
+        />
+        <Text
+          style={[
+            styles.label,
+            isActive("Community") && styles.activeLabel,
+          ]}
+        >
+          Community
+        </Text>
       </TouchableOpacity>
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    width: 390,
+    width: width - 24, // ✅ responsive
     height: 74,
     backgroundColor: "#FFFFFF",
-    borderRadius: 10,
+    borderRadius: 16,
 
     flexDirection: "row",
     alignItems: "center",
@@ -81,17 +134,22 @@ const styles = StyleSheet.create({
   item: {
     alignItems: "center",
     justifyContent: "center",
+    flex: 1,
   },
 
   label: {
     marginTop: 4,
-    fontFamily: "Poppins-Regular",
     fontSize: 12,
     color: "#484C52",
   },
 
+  activeLabel: {
+    color: "#147C78",
+    fontWeight: "600",
+  },
+
   cameraWrapper: {
-    marginTop: -20,
+    marginTop: -24,
   },
 
   cameraButton: {

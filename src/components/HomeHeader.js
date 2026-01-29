@@ -1,30 +1,55 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import styles from "../styles/homeStyles";
 
-export default function HomeHeader({ onProfile, onNotify, onSetting }) {
+export default function HomeHeader({
+  onProfile,
+  onNotify,
+  onSetting,
+}) {
   return (
     <View style={styles.headerBg}>
-      {/* ซ้าย: โปรไฟล์ */}
-      <TouchableOpacity onPress={onProfile}>
-        <Image
-          source={require("../../assets/makky.jpg")}
-          style={styles.avatar}
-        />
-      </TouchableOpacity>
+      
+      {/* ซ้าย: โปรไฟล์ (placeholder) */}
+      <TouchableOpacity
+        style={styles.avatarPlaceholder}
+        onPress={onProfile}
+        activeOpacity={0.7}
+      />
 
-      {/* กลาง */}
-      <Text style={styles.title}>NEKO CARE</Text>
+      {/* กลาง: Title */}
+      <Text style={styles.headerTitle}>
+        NEKO CARE
+      </Text>
 
-      {/* ขวา */}
+      {/* ขวา: แจ้งเตือน + ตั้งค่า */}
       <View style={styles.iconGroup}>
-        <TouchableOpacity style={styles.iconBtn} onPress={onNotify}>
-          <Text>🔔</Text>
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={onNotify}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name="notifications-outline"
+            size={20}
+            color="#147C78"
+          />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconBtn} onPress={onSetting}>
-          <Text>⚙️</Text>
+
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={onSetting}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name="settings-outline"
+            size={20}
+            color="#147C78"
+          />
         </TouchableOpacity>
       </View>
+
     </View>
   );
 }
