@@ -1,7 +1,6 @@
 import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
-  /* ===== Container ===== */
   container: {
     flex: 1,
     backgroundColor: "#F7FBFA",
@@ -33,13 +32,14 @@ export default StyleSheet.create({
     marginTop: 20,
   },
 
-  circleBg: {
+  circleBase: {
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: "#F0F3F5",
+    backgroundColor: "#EAF2F1",
     justifyContent: "center",
     alignItems: "center",
+    overflow: "hidden",
   },
 
   circleProgress: {
@@ -48,22 +48,18 @@ export default StyleSheet.create({
     height: 180,
     borderRadius: 90,
     borderWidth: 16,
-    borderColor: "#FFA86E",
     borderLeftColor: "transparent",
     borderBottomColor: "transparent",
-    transform: [{ rotate: "45deg" }],
   },
 
   riskText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FF8A3D",
   },
 
   recommendText: {
     marginTop: 12,
     fontSize: 12,
-    color: "#FF8A3D",
   },
 
   subText: {
@@ -90,7 +86,7 @@ export default StyleSheet.create({
     lineHeight: 16,
   },
 
-  /* ===== Section Title ===== */
+  /* ===== Risk Breakdown ===== */
   sectionTitle: {
     marginTop: 24,
     marginBottom: 8,
@@ -100,7 +96,6 @@ export default StyleSheet.create({
     color: "#0C5A58",
   },
 
-  /* ===== Risk Breakdown ===== */
   riskItem: {
     paddingHorizontal: 20,
     marginBottom: 12,
@@ -135,12 +130,12 @@ export default StyleSheet.create({
     borderRadius: 4,
   },
 
-  /* ================================================= */
-  /* ===== NEW : Disease Dropdown Box ===== */
+  /* ===== Disease & Counseling ===== */
   centerWrapper: {
-  alignItems: "center",   // 👈 จัดกลางแนวนอน
-  marginTop: 8,
-},
+    alignItems: "center",
+    marginTop: 16,
+  },
+
   diseaseBox: {
     width: 343,
     minHeight: 204,
@@ -148,13 +143,16 @@ export default StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    marginTop: 12,
-    alignSelf: "center",
+    elevation: 3,
+  },
 
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 4,
+  counselingBox: {
+    width: 343,
+    minHeight: 204,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    elevation: 3,
   },
 
   boxTitle: {
@@ -185,7 +183,6 @@ export default StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E1ECEB",
     borderRadius: 10,
-    overflow: "hidden",
   },
 
   dropdownItem: {
@@ -200,29 +197,12 @@ export default StyleSheet.create({
     color: "#0C5A58",
   },
 
-  /* ===== NEW : Counseling Box ===== */
-  counselingBox: {
-    width: 343,
-    minHeight: 204,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-    marginTop: 16,
-    alignSelf: "center",
-
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-
   counselingText: {
     marginTop: 12,
     fontSize: 11,
     color: "#6C7A79",
     lineHeight: 16,
   },
-
 
   /* ===== Save Button ===== */
   saveButton: {
@@ -242,5 +222,4 @@ export default StyleSheet.create({
     fontWeight: "600",
     color: "#FFFFFF",
   },
-
 });
