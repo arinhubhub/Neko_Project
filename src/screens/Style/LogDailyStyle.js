@@ -18,7 +18,7 @@ export const styles = StyleSheet.create({
         color: '#00695C',
     },
     content: {
-        padding: 16,
+        padding: 16, // Reduced from 16 to fit larger items
         paddingBottom: 40,
     },
     questionText: {
@@ -44,6 +44,7 @@ export const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
+        shadowRadius: 4,
         shadowRadius: 4,
         elevation: 3,
     },
@@ -86,7 +87,7 @@ export const styles = StyleSheet.create({
     input: {
         flex: 1,
         height: 40,
-        backgroundColor: '#fff',
+        // backgroundColor: '#fff', // Removed to avoid overlap issues
         borderRadius: 8,
         paddingHorizontal: 10,
         // borderWidth: 1, // Remove inner border to avoid double border look
@@ -107,56 +108,68 @@ export const styles = StyleSheet.create({
         width: 60,
     },
     iconImg: {
-        width: 50, // Enlarged
-        height: 50,
+        width: 45, // Adjusted to fit inside the new box
+        height: 45,
         resizeMode: 'contain',
-        marginBottom: 8,
     },
     levelText: {
-        fontSize: 10,
+        fontSize: 14, // Increased from 10
         color: '#555',
         textAlign: 'center',
     },
-    
+
     /* Grid Styles */
     gridContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'flex-start',
-        gap: 12, // Space between items
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        // gap: 12, // Removed gap, letting space-between handle 5 items
     },
     gridItem: {
-        width: '18%', // Approx 5 items per row with gap
+        width: 70, // Matches levelBtn width
         alignItems: 'center',
         marginBottom: 12,
     },
     gridIconBtn: {
-        width: 50,
-        height: 50,
+        width: 60, // Reduced to match standard levelBtn width better
+        height: 60,
         borderRadius: 12,
-        backgroundColor: '#fff',
+        backgroundColor: '#F0F0F0', // Grey when not selected
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        marginBottom: 4,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
+        overflow: 'hidden',
     },
     gridIconBtnActive: {
-        borderColor: '#00695C',
-        backgroundColor: '#E0F2F1',
-        borderWidth: 2,
+        backgroundColor: '#FFFFFF', // Brighter white when selected
+        // Removed green border as requested
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        elevation: 4,
+    },
+    gridIconBtnActiveOrange: {
+        backgroundColor: '#FFFDE7', // Light yellow/orange for Something off mode
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        elevation: 4,
     },
     gridLabel: {
-        fontSize: 10,
+        fontSize: 14, // Increased from 10
         color: '#555',
         textAlign: 'center',
     },
-    
+    gridIconImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'contain',
+    },
+
+
     saveButton: {
         backgroundColor: '#80CBC4',
         paddingVertical: 14,
@@ -186,5 +199,16 @@ export const styles = StyleSheet.create({
     },
     circleActive: {
         backgroundColor: '#80CBC4',
-    }
+    },
+    contentOff: {
+        backgroundColor: '#FFE0B2', // ส้มอ่อน
+    },
+    statusCardOff: {
+        backgroundColor: '#FFC107',
+        borderColor: '#FF9800',
+    },
+
+    saveButtonOff: {
+        backgroundColor: '#FFE082', // Yellowish orange for Save button in Something off mode
+    },
 });

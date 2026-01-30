@@ -13,12 +13,12 @@ import HomeScreen from './src/screens/HomeScreen'; // อย่าลืม Impo
 // import ResultScreen, AssessmentScreen, HomeScreenOld... (Import หน้าอื่นๆ ตามที่มีในโปรเจกต์จริง)
 
 import { useFonts } from 'expo-font';
-import { 
-  Inter_400Regular, 
-  Inter_700Bold, 
-  Inter_500Medium, 
-  Inter_600SemiBold, 
-  Inter_300Light 
+import {
+  Inter_400Regular,
+  Inter_700Bold,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_300Light
 } from '@expo-google-fonts/inter';
 import { Poppins_400Regular } from '@expo-google-fonts/poppins';
 
@@ -32,28 +32,28 @@ export default function App() {
     'Poppins-Regular': Poppins_400Regular,
   });
 
-  const [currentScreen, setCurrentScreen] = useState('SignIn');
+  const [currentScreen, setCurrentScreen] = useState('LogDaily');
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [authScreen, setAuthScreen] = useState('Home'); 
+  const [authScreen, setAuthScreen] = useState('LogDaily');
   const [catId, setCatId] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false); // ✅ Track if checking profile
 
   // Fix Logout: Should actually sign out
   const handleSignOut = async () => {
-      setLoading(true);
-      await supabase.auth.signOut();
-      setSession(null);
-      setAuthScreen('Home'); // Reset for next login
-      setCurrentScreen('SignIn');
-      setLoading(false);
+    setLoading(true);
+    await supabase.auth.signOut();
+    setSession(null);
+    setAuthScreen('Home'); // Reset for next login
+    setCurrentScreen('SignIn');
+    setLoading(false);
   };
 
   const navigateToSignIn = () => {
-      handleSignOut(); // Logout if navigating to SignIn
+    handleSignOut(); // Logout if navigating to SignIn
   };
   const navigateToSignUp = () => setCurrentScreen('SignUp');
-  
+
   const navigateToLogDaily = () => setAuthScreen('LogDaily');
   const navigateToHome = () => setAuthScreen('Home');
 
@@ -72,96 +72,61 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
-          checkUserProfileStatus(session);
+        checkUserProfileStatus(session);
       } else {
-          setAuthScreen('Home'); // Reset
+        setAuthScreen('Home'); // Reset
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // Check if user has profile and cat
   const checkUserProfileStatus = async (session) => {
-      if (!session?.user) return;
-      
-      try {
-          setProfileLoading(true); // Start check
-          // 1. Check Profile
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (!profile || !profile.name) {
-              setAuthScreen('Profile'); // Go to Profile fill
-              return;
-          }
-
-          // 2. Check Cat
-          const { data: cat } = await supabase
-            .from('cats')
-            .select('id')
-            .eq('owner_id', session.user.id)
-            .limit(1)
-            .single();
-
-          if (!cat) {
-              setAuthScreen('CatProfile'); // Go to Cat Profile
-              return;
-          }
-          
-          // If all good, explicitly set to Home
-          setAuthScreen('Home'); 
-      } catch (err) {
-          console.log("Check status error:", err);
-      } finally {
-          setProfileLoading(false);
-      }
+    // Bypass checks to force LogDaily as requested by user
+    setAuthScreen('LogDaily');
   };
 
 
   if (!fontsLoaded || loading || (session && profileLoading)) { // ✅ Wait for profile check if session exists
-      return (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-              <ActivityIndicator size="large" color="#00695C" />
-          </View>
-      );
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#00695C" />
+      </View>
+    );
   }
 
   // ส่วนจัดการ Session (ถ้าล็อกอินแล้ว)
   if (session && !loading) {
-      if (authScreen === 'CatProfile') {
-          return <CatProfile session={session} onNavigateToHome={() => setAuthScreen('Home')} />; 
-      }
-      if (authScreen === 'Profile') {
-          return <ProfileScreen session={session} onNavigateToCatProfile={() => setAuthScreen('CatProfile')} />;
-      }
-      if (authScreen === 'UserInfo') {
-         return <UserInfoScreen 
-            session={session} 
-            catId={catId} 
-            onLogout={() => supabase.auth.signOut()} 
-            onMissingProfile={() => setAuthScreen('Profile')}
-            onBack={() => setAuthScreen('Home')} // ✅ Back button support
-         />;
-      }
-      
-      if (authScreen === 'LogDaily') {
-         return <LogDailyNormal 
-            session={session}
-            onBack={() => setAuthScreen('Home')} 
-         />;
-      }
-
-      // ✅ Default Home
-      return <HomeScreen 
-          onLogout={navigateToSignIn} 
-          onLogDaily={() => setAuthScreen('LogDaily')}
-          onAssess={() => {/* Logic for assessment */}}
-          onSetting={() => setAuthScreen('UserInfo')} // ✅ Go to Settings (UserInfo)
+    if (authScreen === 'CatProfile') {
+      return <CatProfile session={session} onNavigateToHome={() => setAuthScreen('Home')} />;
+    }
+    if (authScreen === 'Profile') {
+      return <ProfileScreen session={session} onNavigateToCatProfile={() => setAuthScreen('CatProfile')} />;
+    }
+    if (authScreen === 'UserInfo') {
+      return <UserInfoScreen
+        session={session}
+        catId={catId}
+        onLogout={() => supabase.auth.signOut()}
+        onMissingProfile={() => setAuthScreen('Profile')}
+        onBack={() => setAuthScreen('Home')} // ✅ Back button support
       />;
+    }
+
+    if (authScreen === 'LogDaily') {
+      return <LogDailyNormal
+        session={session}
+        onBack={() => setAuthScreen('Home')}
+      />;
+    }
+
+    // ✅ Default Home
+    return <HomeScreen
+      onLogout={navigateToSignIn}
+      onLogDaily={() => setAuthScreen('LogDaily')}
+      onAssess={() => {/* Logic for assessment */ }}
+      onSetting={() => setAuthScreen('UserInfo')} // ✅ Go to Settings (UserInfo)
+    />;
   }
 
   // ส่วนจัดการหน้าจอ (ถ้ายังไม่ล็อกอิน หรือ flow ปกติ)
@@ -170,26 +135,26 @@ export default function App() {
       {currentScreen === 'SignIn' && (
         <SignInScreen onNavigate={navigateToSignUp} />
       )}
-      
+
       {currentScreen === 'SignUp' && (
         <SignUpScreen onNavigate={navigateToSignIn} />
       )}
 
       {/* ===== หน้า Home ===== */}
       {currentScreen === 'Home' && (
-        <HomeScreen 
-          onLogout={navigateToSignIn} 
+        <HomeScreen
+          onLogout={navigateToSignIn}
           // ต้องส่ง props ไปให้กดแล้วไปหน้า LogDaily ได้
-          onLogDaily={navigateToLogDaily} 
+          onLogDaily={navigateToLogDaily}
         />
       )}
 
       {/* ===== ✅ 3. เพิ่มหน้า LogDaily ตรงนี้ ===== */}
       {/* ===== ✅ 3. เพิ่มหน้า LogDaily ตรงนี้ ===== */}
       {currentScreen === 'LogDaily' && (
-        <LogDailyNormal 
-            session={session}
-            onBack={navigateToHome}
+        <LogDailyNormal
+          session={session}
+          onBack={navigateToHome}
         />
       )}
 
