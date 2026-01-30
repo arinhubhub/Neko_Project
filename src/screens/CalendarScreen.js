@@ -133,7 +133,10 @@ export default function CalendarScreen({ onNavigate }) {
         </TouchableOpacity>
 
         {/* Backdated Edit Button */}
-        <TouchableOpacity style={styles.editButton}>
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => onNavigate("LogDaily")}
+        >
           <Feather name="calendar" size={18} color="#147C78" style={{ marginRight: 8 }} />
           <Text style={styles.editButtonText}>Backdated Edit</Text>
         </TouchableOpacity>

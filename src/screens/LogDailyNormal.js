@@ -26,6 +26,7 @@ export default function LogDailyNormal({ session, onBack }) {
     const [behavior, setBehavior] = useState('');
     const [vomitLevel, setVomitLevel] = useState(3);
     const [vomitColor, setVomitColor] = useState('');
+    const [notes, setNotes] = useState('');
 
     const [loading, setLoading] = useState(false);
 
@@ -59,31 +60,33 @@ export default function LogDailyNormal({ session, onBack }) {
 
         setLoading(true);
 
+        const formatToEnum = (val) => val ? String(val).trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') : null;
+
         const payload = {
             cat_id: catId,
             log_date: new Date().toISOString().split('T')[0], // yyyy-mm-dd
-            status, // 'Normal' | 'Something off'
             food_intake: foodIntake ? Number(foodIntake) : null,
-            water_intake: waterIntake ? Number(waterIntake) : null,
-            urine_level: urineLevel,
-            urine_color: urineColor || null,
-            behavior: behavior || null,
-            stool_level: stoolLevel,
-            stool_color: stoolColor || null,
-            vomit_level: status === 'Something off' ? vomitLevel : null,
-            vomit_color: status === 'Something off' ? (vomitColor || null) : null,
+            water_level: waterIntake ? Number(waterIntake) : null,
+            urine_level_enum: String(getLevelValue(urineLevel)).toLowerCase(),
+            urine_color_enum: formatToEnum(urineColor),
+            behavior_enum: formatToEnum(behavior),
+            stool_level_enum: String(getLevelValue(stoolLevel)).toLowerCase(),
+            stool_color_enum: formatToEnum(stoolColor),
+            vomit_level_enum: status === 'Something off' ? String(getLevelValue(vomitLevel)).toLowerCase() : null,
+            vomit_color_enum: status === 'Something off' ? formatToEnum(vomitColor) : null,
+            notes: notes || null,
         };
 
-        console.log('SAVE DATA 👉', payload);
+        console.log('SENDING TO SUPABASE (v1.8) 👉', JSON.stringify(payload, null, 2));
 
         const { error } = await supabase
             .from('daily_logs')
-            .insert(payload);
+            .upsert(payload, { onConflict: 'cat_id, log_date' });
 
         setLoading(false);
 
         if (error) {
-            Alert.alert('Error', error.message);
+            Alert.alert('Error (v1.8)', error.message);
         } else {
             Alert.alert('Success', 'Daily log saved!', [
                 { text: 'OK', onPress: onBack }
@@ -131,30 +134,42 @@ export default function LogDailyNormal({ session, onBack }) {
         }
     };
 
+    const getLevelValue = (level) => {
+        switch (level) {
+            case 1: return "very_low";
+            case 2: return "low";
+            case 3: return "normal";
+            case 4: return "high";
+            case 5: return "very_high";
+            default: return null;
+        }
+    };
+
 
     // Data Arrays for Grids
     const urineColors = [
-        { label: 'Pale Yellow', value: 'Pale Yellow', icon: require('../../assets/Urine_Color.png') }, // Generic icon
-        { label: 'Dark Orange', value: 'Dark Orange', icon: require('../../assets/Urine_Color.png') },
-        { label: 'Deep Brown', value: 'Deep Brown', icon: require('../../assets/Urine_Color.png') },
-        { label: 'Bloody', value: 'Bloody', icon: require('../../assets/Urine_Color.png') },
-        { label: 'Clear', value: 'Clear', icon: require('../../assets/Urine_Color.png') },
+        { label: 'Pale Yellow', value: 'pale_yellow', icon: require('../../assets/Urine_Color.png') },
+        { label: 'Dark Orange', value: 'dark_orange', icon: require('../../assets/Urine_Color.png') },
+        { label: 'Deep Brown', value: 'deep_brown', icon: require('../../assets/Urine_Color.png') },
+        { label: 'Bloody', value: 'bloody', icon: require('../../assets/Urine_Color.png') },
+        { label: 'Clear', value: 'clear', icon: require('../../assets/Urine_Color.png') },
     ];
 
     const stoolColors = [
-        { label: 'Dark Brown', value: 'Dark Brown', icon: require('../../assets/Stool_Color.png') },
-        { label: 'Bright Red', value: 'Bright Red', icon: require('../../assets/Stool_Color.png') },
-        { label: 'Black', value: 'Black', icon: require('../../assets/Stool_Color.png') },
-        { label: 'Yellow/Orange', value: 'Yellow or Orange', icon: require('../../assets/Stool_Color.png') },
-        { label: 'Green', value: 'Green', icon: require('../../assets/Stool_Color.png') },
+        { label: 'Brown', value: 'brown', icon: require('../../assets/Stool_Color.png') },
+        { label: 'Red', value: 'red', icon: require('../../assets/Stool_Color.png') },
+        { label: 'Green', value: 'green', icon: require('../../assets/Stool_Color.png') },
+        { label: 'Yellow Foam', value: 'yellow_foam', icon: require('../../assets/Stool_Color.png') },
+        { label: 'White Mucus', value: 'white_mucus', icon: require('../../assets/Stool_Color.png') },
+        { label: 'Undigested Food', value: 'undigested_food', icon: require('../../assets/Stool_Color.png') },
     ];
 
     const behaviors = [
-        { label: 'Frequent trips', value: 'Frequent trips', icon: require('../../assets/Behavior.png') },
-        { label: 'Straining', value: 'Straining', icon: require('../../assets/Behavior.png') },
-        { label: 'Painful vocal', value: 'Painful vocalization', icon: require('../../assets/Behavior.png') },
-        { label: 'Inappropriate', value: 'Inappropriate urination', icon: require('../../assets/Behavior.png') },
-        { label: 'Hunched', value: 'Hunched posture', icon: require('../../assets/Behavior.png') },
+        { label: 'Frequent trips', value: 'frequent_trips', icon: require('../../assets/Behavior.png') },
+        { label: 'Straining', value: 'straining', icon: require('../../assets/Behavior.png') },
+        { label: 'Painful vocal', value: 'painful_vocal', icon: require('../../assets/Behavior.png') },
+        { label: 'Inappropriate', value: 'inappropriate', icon: require('../../assets/Behavior.png') },
+        { label: 'Hunched', value: 'hunched', icon: require('../../assets/Behavior.png') },
     ];
 
     const vomitColors = [
@@ -166,26 +181,27 @@ export default function LogDailyNormal({ session, onBack }) {
         { label: 'Undigested Food', value: 'undigested_food', icon: require('../../assets/Stool_Color.png') },
     ];
 
-    const GridSelector = ({ label, data, selectedValue, onChange }) => (
+    const GridSelector = ({ label, data, selectedValue, onChange, isVomitColor }) => (
         <View style={styles.section}>
             <Text style={styles.label}>{label}</Text>
             <View style={styles.gridContainer}>
                 {data.map((item, index) => (
                     <TouchableOpacity
                         key={index}
-                        style={styles.gridItem}
+                        style={[styles.gridItem, isVomitColor && styles.gridItemVomit]}
                         onPress={() => onChange(item.value)}
                     >
                         <View style={[
                             styles.gridIconBtn,
+                            isVomitColor && styles.gridIconBtnVomit,
                             selectedValue === item.value && (status === 'Something off' ? styles.gridIconBtnActiveOrange : styles.gridIconBtnActive)
                         ]}>
                             <Image
                                 source={item.icon}
-                                style={[styles.iconImg, selectedValue !== item.value && { opacity: 0.4 }]}
+                                style={[styles.iconImg, isVomitColor && { width: 52, height: 52 }, selectedValue !== item.value && { opacity: 0.4 }]}
                             />
                         </View>
-                        <Text style={[styles.gridLabel, selectedValue === item.value && { color: '#000', fontWeight: 'bold' }]}>
+                        <Text style={[styles.gridLabel, isVomitColor && { fontSize: 12.5 }, selectedValue === item.value && { color: '#4d4b4bff' }]}>
                             {item.label}
                         </Text>
                     </TouchableOpacity>
@@ -195,12 +211,12 @@ export default function LogDailyNormal({ session, onBack }) {
     );
 
     return (
-        <View style={styles.safeArea}>
+        <View style={[styles.safeArea, status === 'Something off' && styles.safeAreaOff]}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-                    <Ionicons name="chevron-back" size={24} color="#000" />
+                    <Ionicons name="chevron-back" size={24} color="#000000ff" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>daily log</Text>
+                <Text style={styles.headerTitle}>daily log <Text style={{ fontSize: 10, color: '#999' }}>v1.8</Text></Text>
                 <View style={{ width: 24 }} />
             </View>
 
@@ -332,6 +348,7 @@ export default function LogDailyNormal({ session, onBack }) {
                         {/* Vomit Color Grid */}
                         <GridSelector
                             label="vomit Color"
+                            isVomitColor={true}
                             data={vomitColors}
                             selectedValue={vomitColor}
                             onChange={setVomitColor}
@@ -339,6 +356,21 @@ export default function LogDailyNormal({ session, onBack }) {
                     </>
                 )}
 
+
+
+                {/* Notes Section */}
+                <View style={styles.section}>
+                    <Text style={styles.label}>Notes</Text>
+                    <TextInput
+                        style={styles.notesInput}
+                        placeholder="Add some notes..."
+                        placeholderTextColor="#999"
+                        multiline
+                        numberOfLines={4}
+                        value={notes}
+                        onChangeText={setNotes}
+                    />
+                </View>
 
                 <TouchableOpacity
                     style={[styles.saveButton, status === 'Something off' && styles.saveButtonOff]}

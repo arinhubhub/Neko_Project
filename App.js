@@ -9,7 +9,8 @@ import supabase from './src/screens/config/supabaseClient';
 
 // ✅ 1. Import ไฟล์ LogDailyNormal เข้ามา
 import LogDailyNormal from './src/screens/LogDailyNormal';
-import HomeScreen from './src/screens/HomeScreen'; // อย่าลืม Import Home ด้วยถ้าจะใช้
+import CalendarScreen from './src/screens/CalendarScreen';
+import HomeScreen from './src/screens/HomeScreen';
 // import ResultScreen, AssessmentScreen, HomeScreenOld... (Import หน้าอื่นๆ ตามที่มีในโปรเจกต์จริง)
 
 import { useFonts } from 'expo-font';
@@ -32,10 +33,10 @@ export default function App() {
     'Poppins-Regular': Poppins_400Regular,
   });
 
-  const [currentScreen, setCurrentScreen] = useState('LogDaily');
+  const [currentScreen, setCurrentScreen] = useState('SignIn');
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [authScreen, setAuthScreen] = useState('LogDaily');
+  const [authScreen, setAuthScreen] = useState('Home');
   const [catId, setCatId] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false); // ✅ Track if checking profile
 
@@ -54,8 +55,14 @@ export default function App() {
   };
   const navigateToSignUp = () => setCurrentScreen('SignUp');
 
-  const navigateToLogDaily = () => setAuthScreen('LogDaily');
-  const navigateToHome = () => setAuthScreen('Home');
+  const navigateToLogDaily = () => {
+    setAuthScreen('LogDaily');
+    setCurrentScreen('LogDaily');
+  };
+  const navigateToHome = () => {
+    setAuthScreen('Home');
+    setCurrentScreen('Home');
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session }, error }) => {
@@ -82,8 +89,8 @@ export default function App() {
   }, []);
 
   const checkUserProfileStatus = async (session) => {
-    // Bypass checks to force LogDaily as requested by user
-    setAuthScreen('LogDaily');
+    // Normal flow: Go to Home after login
+    setAuthScreen('Home');
   };
 
 
@@ -116,7 +123,13 @@ export default function App() {
     if (authScreen === 'LogDaily') {
       return <LogDailyNormal
         session={session}
-        onBack={() => setAuthScreen('Home')}
+        onBack={() => setAuthScreen('Calendar')}
+      />;
+    }
+
+    if (authScreen === 'Calendar') {
+      return <CalendarScreen
+        onNavigate={(screen) => setAuthScreen(screen)}
       />;
     }
 
@@ -126,6 +139,7 @@ export default function App() {
       onLogDaily={() => setAuthScreen('LogDaily')}
       onAssess={() => {/* Logic for assessment */ }}
       onSetting={() => setAuthScreen('UserInfo')} // ✅ Go to Settings (UserInfo)
+      onNavigate={(screen) => setAuthScreen(screen)} // ✅ Add this
     />;
   }
 
@@ -146,6 +160,7 @@ export default function App() {
           onLogout={navigateToSignIn}
           // ต้องส่ง props ไปให้กดแล้วไปหน้า LogDaily ได้
           onLogDaily={navigateToLogDaily}
+          onNavigate={(screen) => setCurrentScreen(screen)}
         />
       )}
 
@@ -154,7 +169,13 @@ export default function App() {
       {currentScreen === 'LogDaily' && (
         <LogDailyNormal
           session={session}
-          onBack={navigateToHome}
+          onBack={() => setCurrentScreen('Calendar')}
+        />
+      )}
+
+      {currentScreen === 'Calendar' && (
+        <CalendarScreen
+          onNavigate={(screen) => setCurrentScreen(screen)}
         />
       )}
 

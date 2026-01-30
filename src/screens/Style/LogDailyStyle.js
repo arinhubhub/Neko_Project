@@ -41,7 +41,7 @@ export const styles = StyleSheet.create({
         borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        shadowColor: "#000",
+        shadowColor: "#000000ff",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -105,15 +105,15 @@ export const styles = StyleSheet.create({
     },
     levelBtn: {
         alignItems: 'center',
-        width: 60,
+        width: 72, // Increased from 70
     },
     iconImg: {
-        width: 45, // Adjusted to fit inside the new box
-        height: 45,
+        width: 58, // Increased significantly, slightly less than container for padding
+        height: 58,
         resizeMode: 'contain',
     },
     levelText: {
-        fontSize: 14, // Increased from 10
+        fontSize: 15, // Increased from 14
         color: '#555',
         textAlign: 'center',
     },
@@ -128,18 +128,25 @@ export const styles = StyleSheet.create({
         // gap: 12, // Removed gap, letting space-between handle 5 items
     },
     gridItem: {
-        width: 70, // Matches levelBtn width
+        width: 72,
         alignItems: 'center',
         marginBottom: 12,
     },
+    gridItemVomit: {
+        width: 60, // Increased from 58
+    },
     gridIconBtn: {
-        width: 60, // Reduced to match standard levelBtn width better
-        height: 60,
-        borderRadius: 12,
-        backgroundColor: '#F0F0F0', // Grey when not selected
+        width: 64, // Increased from 60
+        height: 64,
+        borderRadius: 14,
+        backgroundColor: '#F0F0F0',
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
+    },
+    gridIconBtnVomit: {
+        width: 58, // Increased from 50
+        height: 58,
     },
     gridIconBtnActive: {
         backgroundColor: '#FFFFFF', // Brighter white when selected
@@ -159,7 +166,7 @@ export const styles = StyleSheet.create({
         elevation: 4,
     },
     gridLabel: {
-        fontSize: 14, // Increased from 10
+        fontSize: 15, // Increased from 14
         color: '#555',
         textAlign: 'center',
     },
@@ -210,5 +217,21 @@ export const styles = StyleSheet.create({
 
     saveButtonOff: {
         backgroundColor: '#FFE082', // Yellowish orange for Save button in Something off mode
+    },
+    safeAreaOff: {
+        backgroundColor: '#FFE0B2', // Match orange-ish background
+    },
+    notesInput: {
+        width: '100%',
+        minHeight: 100,
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        padding: 12,
+        fontSize: 16,
+        color: '#333',
+        textAlignVertical: 'top', // For Android multiline alignment
+        marginTop: 4,
     },
 });
