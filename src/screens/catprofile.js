@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, SafeAreaView, Alert } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { styles } from './Style/authstyle';
 import supabase from './config/supabaseClient';
 import { StatusBar } from 'expo-status-bar';
@@ -125,20 +126,21 @@ export default function CatProfile({ session, onNavigateToHome }) { // Receiving
                 <View style={styles.contentContainer}>
                     {/* Gender Toggle */}
                     <View style={styles.rowContainer}>
-                        <View style={styles.toggleContainer}>
-                            <TouchableOpacity 
-                                style={[styles.toggleButton, gender === 'Male' && styles.toggleButtonActive]}
-                                onPress={() => setGender('Male')}
+                        {/* Gender Picker */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.labelprofile}>Gender</Text>
+                        <View style={[styles.input, { paddingHorizontal: 0, justifyContent: 'center' }]}>
+                            <Picker
+                                selectedValue={gender}
+                                onValueChange={(itemValue) => setGender(itemValue)}
+                                style={{ width: '100%', height: 50 }}
+                                dropdownIconColor="#2F6A62"
                             >
-                                <Text style={[styles.toggleText, gender === 'Male' && styles.toggleTextActive]}>Male</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity 
-                                style={[styles.toggleButton, gender === 'Female' && styles.toggleButtonActive]}
-                                onPress={() => setGender('Female')}
-                            >
-                                <Text style={[styles.toggleText, gender === 'Female' && styles.toggleTextActive]}>Female</Text>
-                            </TouchableOpacity>
+                                <Picker.Item label="Male" value="Male" />
+                                <Picker.Item label="Female" value="Female" />
+                            </Picker>
                         </View>
+                    </View>
 
                         {/* Neutered Toggle - Assuming Yes/No maps to Neutered status */}
                         <View style={styles.toggleContainer}>

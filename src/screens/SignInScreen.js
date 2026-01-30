@@ -82,7 +82,7 @@ const handleSignIn = async () => {
 
                     {/* Sign In Button */}
                     <TouchableOpacity style={styles.button} onPress={handleSignIn}>
-                        <Text style={styles.buttonText}>Sign in</Text>
+                        <Text style={styles.buttonText}>Log in</Text>
                     </TouchableOpacity>
 
                     {/* SignUp Link */}

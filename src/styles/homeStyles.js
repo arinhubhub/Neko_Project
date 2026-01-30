@@ -163,12 +163,12 @@ const styles = StyleSheet.create({
 
   /* ====== LOG DAILY CARD (Image Background) ====== */
   dailyLogCard: {
-      width: '100%',
-      height: 150,
+      width: '90%',
+      height: 140,
       borderRadius: 20,
       overflow: 'hidden',
-      marginBottom: 100, 
-      // Remove elevation to prevent shadow box artifact
+      marginBottom: 30, // Reduced from 100 to keep it closer to other elements
+      alignSelf: 'center',
   },
   
   dailyLogBg: {

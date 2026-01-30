@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import HomeHeader from "../components/HomeHeader";
 import styles from "../styles/homeStyles";
 
-export default function HomeScreen({ onAssess, onLogDaily, onSetting }) {
+export default function HomeScreen({ onAssess, onLogDaily, onSetting, onNavigate }) {
   return (
     <SafeAreaView style={styles.container}>
       
@@ -92,6 +92,7 @@ export default function HomeScreen({ onAssess, onLogDaily, onSetting }) {
                     source={require('../../assets/info1.png')} 
                     style={styles.dailyLogBg}
                     imageStyle={{ borderRadius: 20 }}
+                    
                 >
                     <Text style={styles.dailyLogTitle}>ช่วยกรอก Log วันนี้</Text>
                     <Text style={styles.dailyLogDesc}>เพื่อให้การติดตามแม่นยำขึ้น</Text>
@@ -105,9 +106,7 @@ export default function HomeScreen({ onAssess, onLogDaily, onSetting }) {
       {/* ===== Bottom Nav ===== */}
       <BottomNav
         current="Home"
-        onNavigate={(screen) => {
-          console.log("Go to", screen);
-        }}
+        onNavigate={onNavigate}
       />
     </SafeAreaView>
   );

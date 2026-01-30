@@ -10,7 +10,9 @@ import supabase from './src/screens/config/supabaseClient';
 // ✅ 1. Import ไฟล์ LogDailyNormal เข้ามา
 import LogDailyNormal from './src/screens/LogDailyNormal';
 import HomeScreen from './src/screens/HomeScreen'; // อย่าลืม Import Home ด้วยถ้าจะใช้
-// import ResultScreen, AssessmentScreen, HomeScreenOld... (Import หน้าอื่นๆ ตามที่มีในโปรเจกต์จริง)
+import CalendarScreen from './src/screens/CalendarScreen'; 
+import ResultScreen from './src/screens/ResultScreen';
+// import AssessmentScreen, HomeScreenOld... (Import หน้าอื่นๆ ตามที่มีในโปรเจกต์จริง)
 
 import { useFonts } from 'expo-font';
 import { 
@@ -88,26 +90,26 @@ export default function App() {
       try {
           setProfileLoading(true); // Start check
           // 1. Check Profile
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .single();
           
-          if (!profile || !profile.name) {
+          if (profileError || !profile || !profile.name) {
               setAuthScreen('Profile'); // Go to Profile fill
               return;
           }
 
           // 2. Check Cat
-          const { data: cat } = await supabase
+          const { data: cat, error: catError } = await supabase
             .from('cats')
             .select('id')
             .eq('owner_id', session.user.id)
             .limit(1)
             .single();
 
-          if (!cat) {
+          if (catError || !cat) {
               setAuthScreen('CatProfile'); // Go to Cat Profile
               return;
           }
@@ -155,12 +157,26 @@ export default function App() {
          />;
       }
 
+      if (authScreen === 'Calendar') {
+         return <CalendarScreen 
+            onNavigate={(screen) => setAuthScreen(screen)} 
+         />;
+      }
+
+      if (authScreen === 'Result') {
+          return <ResultScreen 
+             onBack={() => setAuthScreen('Home')}
+             onSave={() => setAuthScreen('Home')}
+          />;
+      }
+
       // ✅ Default Home
       return <HomeScreen 
           onLogout={navigateToSignIn} 
           onLogDaily={() => setAuthScreen('LogDaily')}
-          onAssess={() => {/* Logic for assessment */}}
+          onAssess={() => setAuthScreen('Result')}
           onSetting={() => setAuthScreen('UserInfo')} // ✅ Go to Settings (UserInfo)
+          onNavigate={(screen) => setAuthScreen(screen)}
       />;
   }
 

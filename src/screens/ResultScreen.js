@@ -7,16 +7,51 @@ import {
 } from "react-native";
 import styles from "../styles/resultStyles";
 
+// ===== Risk Helper =====
+const getRiskMeta = (score = 0) => {
+  if (score <= 20)
+    return { label: "Healthy", color: "#6FCF97", text: "No significant risk" };
+  if (score <= 40)
+    return { label: "Low Risk", color: "#F2C94C", text: "Minor changes" };
+  if (score <= 60)
+    return {
+      label: "Moderate Risk",
+      color: "#F2994A",
+      text: "Closer monitoring recommended",
+    };
+  if (score <= 80)
+    return {
+      label: "High Risk",
+      color: "#EB5757",
+      text: "Vet consultation advised",
+    };
+  return {
+    label: "Critical",
+    color: "#D32F2F",
+    text: "Immediate attention",
+  };
+};
+
 export default function ResultScreen({ onBack, onSave }) {
   const [selectedCondition, setSelectedCondition] = useState(null);
 
   const riskData = [
-    { label: "Kidney Disease", value: "Low Risk" },
-    { label: "Diabetes", value: "No Risk" },
-    { label: "Urolithiasis", value: "Low Risk" },
-    { label: "Gum Disease", value: "Low Risk" },
-    { label: "Feline Panleukopenia", value: "Low Risk" },
+    { label: "Kidney Disease", score: 0 },
+    { label: "Diabetes", score: 0 },
+    { label: "Urolithiasis", score: 0 },
+    { label: "Gum Disease", score: 0 },
+    { label: "Feline Panleukopenia", score: 0 },
   ];
+
+  // ===== Overall Score =====
+  const overallScore =
+    riskData.length > 0
+      ? Math.round(
+          riskData.reduce((sum, r) => sum + (r.score || 0), 0) / riskData.length
+        )
+      : 0;
+
+  const overallMeta = getRiskMeta(overallScore);
 
   const conditions = ["Vomiting", "Diarrhea", "Lethargy"];
 
@@ -32,17 +67,29 @@ export default function ResultScreen({ onBack, onSave }) {
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        {/* ===== Risk Circle ===== */}
-        <View style={styles.circleWrapper}>
-          <View style={styles.circleBg}>
-            <View style={styles.circleProgress} />
-            <Text style={styles.riskText}>Moderate Risk</Text>
-          </View>
-          <Text style={styles.recommendText}>
-            Closer monitoring recommended
-          </Text>
-          <Text style={styles.subText}>Overall Health Risk</Text>
-        </View>
+     {/* ===== Risk Circle ===== */}
+<View style={styles.circleWrapper}>
+  <View style={styles.circleBg}>
+    <View
+      style={[
+        styles.circleProgress,
+        {
+          borderColor: overallMeta.color,
+          transform: [{ rotate: `${(overallScore / 100) * 360}deg` }],
+        },
+      ]}
+    />
+    <Text style={[styles.riskText, { color: overallMeta.color }]}>
+      {overallMeta.label}
+    </Text>
+  </View>
+
+  <Text style={[styles.recommendText, { color: overallMeta.color }]}>
+    {overallMeta.text}
+  </Text>
+  <Text style={styles.subText}>Overall Health Risk ({overallScore}%)</Text>
+</View>
+
 
         {/* ===== Summary ===== */}
         <View style={styles.summary}>
@@ -58,28 +105,34 @@ export default function ResultScreen({ onBack, onSave }) {
         {/* ===== Risk Breakdown ===== */}
 <Text style={styles.sectionTitle}>Risk Breakdown</Text>
 
-{[
-  { label: "Kidney Disease", value: "Low Risk" },
-  { label: "Diabetes", value: "No Risk" },
-  { label: "Urolithiasis", value: "Low Risk" },
-  { label: "Gum Disease", value: "Low Risk" },
-  { label: "Feline Panleukopenia", value: "Low Risk" },
-].map((item, index) => (
-  <View key={index} style={styles.riskItem}>
-    <View style={styles.riskRow}>
-      <Text style={styles.riskLabel}>{item.label}</Text>
-      <Text style={styles.riskValue}>{item.value}</Text>
-    </View>
+{riskData.map((item, index) => {
+  const meta = getRiskMeta(item.score || 0);
 
-    {/* หลอดพื้นหลัง (ยังอยู่ทุกกรณี) */}
-    <View style={styles.riskBarBg}>
-      {/* เติมสี เฉพาะกรณีที่ไม่ใช่ No Risk */}
-      {item.value !== "No Risk" && (
-        <View style={styles.riskBarFill} />
-      )}
+  return (
+    <View key={index} style={styles.riskItem}>
+      <View style={styles.riskRow}>
+        <Text style={styles.riskLabel}>{item.label}</Text>
+        <Text style={[styles.riskValue, { color: meta.color }]}>
+          {item.score}% · {meta.label}
+        </Text>
+      </View>
+
+      <View style={styles.riskBarBg}>
+        <View
+          style={[
+            styles.riskBarFill,
+            {
+              width: `${item.score || 0}%`,
+              backgroundColor: meta.color,
+            },
+          ]}
+        />
+      </View>
     </View>
-  </View>
-))}
+  );
+})}
+
+
 
         {/* ===== Recommended Approach ===== */}
         <Text style={styles.sectionTitle}>Recommended Approach</Text>

@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { styles } from './Style/authstyle';
 import supabase from './config/supabaseClient';
 import { View, Text, TextInput, TouchableOpacity, Image, Alert, SafeAreaView, ScrollView, ActivityIndicator } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 // If you have icons, import them. For now using text placeholder or simple views for icons if needed.
-
 export default function ProfileScreen({ session, onNavigateToCatProfile }) {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -179,15 +179,22 @@ export default function ProfileScreen({ session, onNavigateToCatProfile }) {
                         />
                     </View>
 
-                    {/* Gender Input */}
+                    {/* Gender Selection */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.labelprofile}>Gender</Text>
-                         <TextInput
-                            style={styles.input}
-                            value={gender}
-                            onChangeText={setGender}
-                            placeholder="Male / Female"
-                        />
+                        <View style={[styles.input, { paddingHorizontal: 0, justifyContent: 'center' }]}>
+                            <Picker
+                                selectedValue={gender}
+                                onValueChange={(itemValue) => setGender(itemValue)}
+                                style={{ width: '100%', height: 50 }}
+                                dropdownIconColor="#2F6A62"
+                            >
+                                <Picker.Item label="Select Gender" value="" color="#999" />
+                                <Picker.Item label="Male" value="Male" />
+                                <Picker.Item label="Female" value="Female" />
+                                <Picker.Item label="Other" value="Other" />
+                            </Picker>
+                        </View>
                     </View>
 
                      {/* Phone Number */}
