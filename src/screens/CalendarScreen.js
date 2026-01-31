@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,9 +6,11 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import BottomNav from "../components/BottomNav";
+import supabase from "./config/supabaseClient";
 
 const { width } = Dimensions.get("window");
 
@@ -18,9 +20,49 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-export default function CalendarScreen({ onNavigate }) {
+export default function CalendarScreen({ onNavigate, session }) {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1)); // Start at Jan 2026 as per design
   const [selectedDate, setSelectedDate] = useState(new Date(2026, 0, 17)); // Default selection
+  const [dailyLog, setDailyLog] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [catId, setCatId] = useState(null);
+
+  // Fetch Cat ID first
+  useEffect(() => {
+    const fetchCat = async () => {
+      if (!session?.user?.id) return;
+      const { data, error } = await supabase
+        .from('cats')
+        .select('id')
+        .eq('owner_id', session.user.id)
+        .limit(1)
+        .single();
+      
+      if (data) setCatId(data.id);
+    };
+    fetchCat();
+  }, [session]);
+
+  // Fetch Log on date change
+  useEffect(() => {
+    const fetchLog = async () => {
+      if (!catId || !selectedDate) return;
+      
+      setLoading(true);
+      const dateString = selectedDate.toISOString().split('T')[0];
+      
+      const { data, error } = await supabase
+        .from('daily_logs')
+        .select('*')
+        .eq('cat_id', catId)
+        .eq('log_date', dateString)
+        .single();
+      
+      setDailyLog(data || null);
+      setLoading(false);
+    };
+    fetchLog();
+  }, [selectedDate, catId]);
 
   // Helper to change month
   const changeMonth = (direction) => {
@@ -105,7 +147,11 @@ export default function CalendarScreen({ onNavigate }) {
       </View>
 
       {/* Details Section */}
-      <View style={styles.detailsContainer}>
+      <ScrollView 
+        style={styles.detailsContainer}
+        contentContainerStyle={{ paddingBottom: 150 }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Selected Date Header */}
         <View style={styles.detailsHeader}>
           <Text style={styles.dateTitle}>
@@ -113,19 +159,70 @@ export default function CalendarScreen({ onNavigate }) {
           </Text>
         </View>
 
-        <Text style={styles.noRecordText}>There is no record of adding a time slot.</Text>
+        {loading ? (
+          <ActivityIndicator size="small" color="#147C78" style={{ marginTop: 20 }} />
+        ) : dailyLog ? (
+          <View style={styles.textLogContainer}>
+             <View style={styles.textLogRow}>
+                <MaterialCommunityIcons name="food-apple" size={18} color="#147C78" />
+                <Text style={styles.textLogLabel}>Food Intake: </Text>
+                <Text style={styles.textLogValue}>{dailyLog.food_intake || '-'} g</Text>
+             </View>
 
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>WEIGHT</Text>
-            <Text style={styles.statValue}>-</Text>
+             <View style={styles.textLogRow}>
+                <MaterialCommunityIcons name="water" size={18} color="#147C78" />
+                <Text style={styles.textLogLabel}>Water Intake: </Text>
+                <Text style={styles.textLogValue}>{dailyLog.water_level || '-'} ml</Text>
+             </View>
+
+             <View style={styles.textLogRow}>
+                <MaterialCommunityIcons name="water-percent" size={18} color="#147C78" />
+                <Text style={styles.textLogLabel}>Urine: </Text>
+                <Text style={styles.textLogValue}>
+                   {dailyLog.urine_level_enum?.replace(/_/g, ' ') || '-'}
+                   {dailyLog.urine_color_enum ? ` (${dailyLog.urine_color_enum.replace(/_/g, ' ')})` : ''}
+                </Text>
+             </View>
+
+             <View style={styles.textLogRow}>
+                <MaterialCommunityIcons name="poop" size={18} color="#147C78" />
+                <Text style={styles.textLogLabel}>Stool: </Text>
+                <Text style={styles.textLogValue}>
+                   {dailyLog.stool_level_enum?.replace(/_/g, ' ') || '-'}
+                   {dailyLog.stool_color_enum ? ` (${dailyLog.stool_color_enum.replace(/_/g, ' ')})` : ''}
+                </Text>
+             </View>
+
+             {(dailyLog.vomit_level_enum || dailyLog.vomit_color_enum) && (
+                <View style={styles.textLogRow}>
+                   <MaterialCommunityIcons name="alert-circle" size={18} color="#D32F2F" />
+                   <Text style={[styles.textLogLabel, {color: '#D32F2F'}]}>Vomit: </Text>
+                   <Text style={styles.textLogValue}>
+                      {dailyLog.vomit_level_enum?.replace(/_/g, ' ') || '-'}
+                      {dailyLog.vomit_color_enum ? ` (${dailyLog.vomit_color_enum.replace(/_/g, ' ')})` : ''}
+                   </Text>
+                </View>
+             )}
+
+             {dailyLog.behavior_enum && (
+                <View style={styles.textLogRow}>
+                   <MaterialCommunityIcons name="cat" size={18} color="#147C78" />
+                   <Text style={styles.textLogLabel}>Behavior: </Text>
+                   <Text style={styles.textLogValue}>{dailyLog.behavior_enum.replace(/_/g, ' ')}</Text>
+                </View>
+             )}
+
+             {dailyLog.notes && (
+                <View style={[styles.textLogRow, {alignItems: 'flex-start'}]}>
+                   <MaterialCommunityIcons name="note-text" size={18} color="#147C78" />
+                   <Text style={styles.textLogLabel}>Notes: </Text>
+                   <Text style={[styles.textLogValue, {flex: 1}]}>{dailyLog.notes}</Text>
+                </View>
+             )}
           </View>
-          <View style={styles.divider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>MOOD</Text>
-            <Text style={styles.statValue}>-</Text>
-          </View>
-        </View>
+        ) : (
+          <Text style={styles.noRecordText}>There is no record for this day.</Text>
+        )}
 
         <Text style={styles.photosLabel}>Photos</Text>
         <TouchableOpacity style={styles.photoPlaceholder}>
@@ -133,11 +230,11 @@ export default function CalendarScreen({ onNavigate }) {
         </TouchableOpacity>
 
         {/* Backdated Edit Button */}
-        <TouchableOpacity style={styles.editButton}>
-          <Feather name="calendar" size={18} color="#147C78" style={{ marginRight: 8 }} />
-          <Text style={styles.editButtonText}>Backdated Edit</Text>
+        <TouchableOpacity style={styles.editButton} onPress={() => onNavigate('LogDaily')}>
+          <Feather name="plus-circle" size={18} color="#147C78" style={{ marginRight: 8 }} />
+          <Text style={styles.editButtonText}>Add Log Today</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
 
       <BottomNav current="Calendar" onNavigate={onNavigate} />
     </View>
@@ -270,6 +367,32 @@ const styles = StyleSheet.create({
     marginRight: 60, // Match statItem
     opacity: 0.3,
   },
+  // Text-based Log Display
+  textLogContainer: {
+    backgroundColor: "rgba(255,255,255,0.4)",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+  },
+  textLogRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  textLogLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#147C78',
+    marginLeft: 8,
+  },
+  textLogValue: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+    textTransform: 'capitalize',
+  },
+
+  // Photos
   photosLabel: {
     fontSize: 16, // Larger
     color: "#147C78",

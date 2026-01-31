@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { 
-    View, 
-    Text, 
-    TouchableOpacity, 
-    TextInput, 
-    ScrollView, 
-    Image, 
-    Alert,
-    SafeAreaView
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    TextInput,
+    ScrollView,
+    Image,
+    Alert
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import supabase from "./config/supabaseClient";
 import { styles } from './Style/LogDailyStyle';
 
@@ -17,14 +16,17 @@ export default function LogDailyNormal({ session, onBack }) {
     const [catId, setCatId] = useState(null);
     const [status, setStatus] = useState('Normal'); // Normal, Something off
     const [foodIntake, setFoodIntake] = useState('');
-    const [waterLevel, setWaterLevel] = useState(3); // 1-5
+    const [waterIntake, setWaterIntake] = useState('');
     const [urineLevel, setUrineLevel] = useState(3); // 1-5
     const [stoolLevel, setStoolLevel] = useState(3); // 1-5
-    
+
     // Additional fields requested
     const [urineColor, setUrineColor] = useState('');
     const [stoolColor, setStoolColor] = useState('');
     const [behavior, setBehavior] = useState('');
+    const [vomitLevel, setVomitLevel] = useState(3);
+    const [vomitColor, setVomitColor] = useState('');
+    const [notes, setNotes] = useState('');
 
     const [loading, setLoading] = useState(false);
 
@@ -42,7 +44,7 @@ export default function LogDailyNormal({ session, onBack }) {
                 .eq('owner_id', session.user.id)
                 .limit(1)
                 .single();
-            
+
             if (error) throw error;
             if (data) setCatId(data.id);
         } catch (error) {
@@ -52,58 +54,69 @@ export default function LogDailyNormal({ session, onBack }) {
 
     const handleSave = async () => {
         if (!catId) {
-            Alert.alert("Error", "No cat profile found. Please create a cat profile first.");
+            Alert.alert("Error", "No cat profile found");
             return;
         }
 
         setLoading(true);
-        try {
-            const { error } = await supabase
-                .from('daily_logs')
-                .insert([
-                    {
-                        cat_id: catId,
-                        log_date: new Date(),
-                        food_intake: foodIntake ? parseFloat(foodIntake) : null, // Assuming DB is int/float, if Text change this
-                        water_level: waterLevel,
-                        urine_level: urineLevel,
-                        stool_level: stoolLevel,
-                        urine_color: urineColor || null, // Enum might fail if empty string isn't allowed, beware
-                        stool_color: stoolColor || null,
-                        behavior: behavior || null,
-                        notes: status === 'Something off' ? 'Something off reported' : 'Normal',
-                    }
-                ]);
 
-            if (error) throw error;
+        const formatToEnum = (val) => val ? String(val).trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') : null;
 
-            Alert.alert("Success", "Daily log saved!", [
-                { text: "OK", onPress: onBack }
+        const payload = {
+            cat_id: catId,
+            log_date: new Date().toISOString().split('T')[0], // yyyy-mm-dd
+            food_intake: foodIntake ? Number(foodIntake) : null,
+            water_level: waterIntake ? Number(waterIntake) : null,
+            urine_level_enum: String(getLevelValue(urineLevel)).toLowerCase(),
+            urine_color_enum: formatToEnum(urineColor),
+            behavior_enum: formatToEnum(behavior),
+            stool_level_enum: String(getLevelValue(stoolLevel)).toLowerCase(),
+            stool_color_enum: formatToEnum(stoolColor),
+            vomit_level_enum: status === 'Something off' ? String(getLevelValue(vomitLevel)).toLowerCase() : null,
+            vomit_color_enum: status === 'Something off' ? formatToEnum(vomitColor) : null,
+            notes: notes || null,
+        };
+
+        console.log('SENDING TO SUPABASE (v1.8) 👉', JSON.stringify(payload, null, 2));
+
+        const { error } = await supabase
+            .from('daily_logs')
+            .upsert(payload, { onConflict: 'cat_id, log_date' });
+
+        setLoading(false);
+
+        if (error) {
+            Alert.alert('Error (v1.8)', error.message);
+        } else {
+            Alert.alert('Success', 'Daily log saved!', [
+                { text: 'OK', onPress: onBack }
             ]);
-        } catch (error) {
-            Alert.alert("Error saving log", error.message);
-        } finally {
-            setLoading(false);
         }
     };
+
 
     const LevelSelector = ({ label, value, onChange, iconSource }) => (
         <View style={styles.section}>
             <Text style={styles.label}>{label}</Text>
             <View style={styles.selectorContainer}>
                 {[1, 2, 3, 4, 5].map((level) => (
-                    <TouchableOpacity 
-                        key={level} 
-                        style={[styles.levelBtn, value === level && styles.levelBtnActive]}
+                    <TouchableOpacity
+                        key={level}
+                        style={styles.levelBtn}
                         onPress={() => onChange(level)}
                     >
-                         {/* Use Image if provided, else generic icon */}
-                         {iconSource ? (
-                             <Image source={iconSource} style={[styles.iconImg, value !== level && {opacity: 0.5}]} />
-                         ) : (
-                             <View style={[styles.circle, value === level && styles.circleActive]} />
-                         )}
-                         <Text style={styles.levelText}>{getLevelLabel(level)}</Text>
+                        <View style={[
+                            styles.gridIconBtn,
+                            value === level && (status === 'Something off' ? styles.gridIconBtnActiveOrange : styles.gridIconBtnActive)
+                        ]}>
+                            {/* Use Image if provided, else generic icon */}
+                            {iconSource ? (
+                                <Image source={iconSource} style={[styles.iconImg, value !== level && { opacity: 0.6 }]} />
+                            ) : (
+                                <View style={[styles.circle, value === level && styles.circleActive]} />
+                            )}
+                        </View>
+                        <Text style={styles.levelText}>{getLevelLabel(level)}</Text>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -111,7 +124,7 @@ export default function LogDailyNormal({ session, onBack }) {
     );
 
     const getLevelLabel = (level) => {
-        switch(level) {
+        switch (level) {
             case 1: return "Very Low";
             case 2: return "Low";
             case 3: return "Normal";
@@ -121,54 +134,76 @@ export default function LogDailyNormal({ session, onBack }) {
         }
     };
 
+    const getLevelValue = (level) => {
+        switch (level) {
+            case 1: return "very_low";
+            case 2: return "low";
+            case 3: return "normal";
+            case 4: return "high";
+            case 5: return "very_high";
+            default: return null;
+        }
+    };
+
 
     // Data Arrays for Grids
     const urineColors = [
-        { label: 'Pale Yellow', value: 'Pale Yellow', icon: require('../../assets/Urine_Color.png') }, // Generic icon
-        { label: 'Dark Orange', value: 'Dark Orange', icon: require('../../assets/Urine_Color.png') },
-        { label: 'Deep Brown', value: 'Deep Brown', icon: require('../../assets/Urine_Color.png') },
-        { label: 'Bloody', value: 'Bloody', icon: require('../../assets/Urine_Color.png') },
-        { label: 'Clear', value: 'Clear', icon: require('../../assets/Urine_Color.png') },
+        { label: 'Pale Yellow', value: 'pale_yellow', icon: require('../../assets/Urine_Color.png') },
+        { label: 'Dark Orange', value: 'dark_orange', icon: require('../../assets/Urine_Color.png') },
+        { label: 'Deep Brown', value: 'deep_brown', icon: require('../../assets/Urine_Color.png') },
+        { label: 'Bloody', value: 'bloody', icon: require('../../assets/Urine_Color.png') },
+        { label: 'Clear', value: 'clear', icon: require('../../assets/Urine_Color.png') },
     ];
 
     const stoolColors = [
-        { label: 'Dark Brown', value: 'Dark Brown', icon: require('../../assets/Stool_Color.png') },
-        { label: 'Bright Red', value: 'Bright Red', icon: require('../../assets/Stool_Color.png') },
-        { label: 'Black', value: 'Black', icon: require('../../assets/Stool_Color.png') },
-        { label: 'Yellow/Orange', value: 'Yellow or Orange', icon: require('../../assets/Stool_Color.png') },
-        { label: 'Green', value: 'Green', icon: require('../../assets/Stool_Color.png') },
+        { label: 'Brown', value: 'brown', icon: require('../../assets/Stool_Color.png') },
+        { label: 'Red', value: 'red', icon: require('../../assets/Stool_Color.png') },
+        { label: 'Green', value: 'green', icon: require('../../assets/Stool_Color.png') },
+        { label: 'Yellow Foam', value: 'yellow_foam', icon: require('../../assets/Stool_Color.png') },
+        { label: 'White Mucus', value: 'white_mucus', icon: require('../../assets/Stool_Color.png') },
+        { label: 'Undigested Food', value: 'undigested_food', icon: require('../../assets/Stool_Color.png') },
     ];
 
     const behaviors = [
-        { label: 'Frequent trips', value: 'Frequent trips', icon: require('../../assets/Behavior.png') },
-        { label: 'Straining', value: 'Straining', icon: require('../../assets/Behavior.png') },
-        { label: 'Painful vocal', value: 'Painful vocalization', icon: require('../../assets/Behavior.png') },
-        { label: 'Inappropriate', value: 'Inappropriate urination', icon: require('../../assets/Behavior.png') },
-        { label: 'Hunched', value: 'Hunched posture', icon: require('../../assets/Behavior.png') },
+        { label: 'Frequent trips', value: 'frequent_trips', icon: require('../../assets/Behavior.png') },
+        { label: 'Straining', value: 'straining', icon: require('../../assets/Behavior.png') },
+        { label: 'Painful vocal', value: 'painful_vocal', icon: require('../../assets/Behavior.png') },
+        { label: 'Inappropriate', value: 'inappropriate', icon: require('../../assets/Behavior.png') },
+        { label: 'Hunched', value: 'hunched', icon: require('../../assets/Behavior.png') },
     ];
 
-    const GridSelector = ({ label, data, selectedValue, onChange }) => (
+    const vomitColors = [
+        { label: 'Yellow Foam', value: 'yellow_foam', icon: require('../../assets/Stool_Color.png') },
+        { label: 'White Mucus', value: 'white_mucus', icon: require('../../assets/Stool_Color.png') },
+        { label: 'Brown', value: 'brown', icon: require('../../assets/Stool_Color.png') },
+        { label: 'Red', value: 'red', icon: require('../../assets/Stool_Color.png') },
+        { label: 'Green', value: 'green', icon: require('../../assets/Stool_Color.png') },
+        { label: 'Undigested Food', value: 'undigested_food', icon: require('../../assets/Stool_Color.png') },
+    ];
+
+    const GridSelector = ({ label, data, selectedValue, onChange, isVomitColor }) => (
         <View style={styles.section}>
             <Text style={styles.label}>{label}</Text>
             <View style={styles.gridContainer}>
                 {data.map((item, index) => (
-                    <TouchableOpacity 
-                        key={index} 
-                        style={styles.gridItem}
+                    <TouchableOpacity
+                        key={index}
+                        style={[styles.gridItem, isVomitColor && styles.gridItemVomit]}
                         onPress={() => onChange(item.value)}
                     >
-                        <View style={[styles.gridIconBtn, selectedValue === item.value && styles.gridIconBtnActive]}>
-                            <Image 
-                                source={item.icon} 
-                                style={{
-                                    width: 32, 
-                                    height: 32, 
-                                    resizeMode: 'contain', 
-                                    opacity: selectedValue === item.value ? 1 : 0.6
-                                }} 
+                        <View style={[
+                            styles.gridIconBtn,
+                            isVomitColor && styles.gridIconBtnVomit,
+                            selectedValue === item.value && (status === 'Something off' ? styles.gridIconBtnActiveOrange : styles.gridIconBtnActive)
+                        ]}>
+                            <Image
+                                source={item.icon}
+                                style={[styles.iconImg, isVomitColor && { width: 52, height: 52 }, selectedValue !== item.value && { opacity: 0.4 }]}
                             />
                         </View>
-                        <Text style={styles.gridLabel}>{item.label}</Text>
+                        <Text style={[styles.gridLabel, isVomitColor && { fontSize: 12.5 }, selectedValue === item.value && { color: '#4d4b4bff' }]}>
+                            {item.label}
+                        </Text>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -176,36 +211,46 @@ export default function LogDailyNormal({ session, onBack }) {
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.safeArea, status === 'Something off' && styles.safeAreaOff]}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-                    <Ionicons name="chevron-back" size={24} color="#000" />
+                    <Ionicons name="chevron-back" size={24} color="#000000ff" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>daily log</Text>
-                <View style={{width: 24}} /> 
+                <Text style={styles.headerTitle}>daily log <Text style={{ fontSize: 10, color: '#999' }}>v1.8</Text></Text>
+                <View style={{ width: 24 }} />
             </View>
 
-            <ScrollView contentContainerStyle={styles.content}>
-                
+            <ScrollView contentContainerStyle={[
+                styles.content,
+                status === 'Something off' && styles.contentOff]}>
+
                 <Text style={styles.questionText}>
-                    How was <Text style={{color: '#4CAF50'}}>Luna</Text> today
+                    How was <Text style={{ color: status === 'Something off' ? '#FF9800' : '#4CAF50' }}>Luna</Text> today
                 </Text>
 
                 {/* Status Toggle */}
                 <View style={styles.statusContainer}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={[styles.statusCard, status === 'Normal' && styles.statusCardActive]}
                         onPress={() => setStatus('Normal')}
                     >
-                        <Text style={{fontSize: 40}}>🐱</Text>
+                        <View style={{ backgroundColor: '#ffffffff', borderRadius: 40, padding: 5, marginBottom: 5 }}>
+                            <MaterialCommunityIcons name="cat" size={60} color="#00695C" />
+                        </View>
                         <Text style={styles.statusText}>Normal</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity 
-                        style={[styles.statusCard, status === 'Something off' && styles.statusCardActive]}
+                    <TouchableOpacity
+                        style={[
+                            styles.statusCard,
+                            status === 'Something off' && styles.statusCardActive,
+                            status === 'Something off' && styles.statusCardOff
+                        ]}
                         onPress={() => setStatus('Something off')}
                     >
-                        <Text style={{fontSize: 40}}>😿</Text>
+                        <View style={{ backgroundColor: '#fff', borderRadius: 40, padding: 5, marginBottom: 5 }}>
+                            <MaterialCommunityIcons name="emoticon-sick-outline" size={60} color="#FF9800" />
+                        </View>
                         <Text style={styles.statusText}>Something off</Text>
                     </TouchableOpacity>
                 </View>
@@ -215,7 +260,7 @@ export default function LogDailyNormal({ session, onBack }) {
                     <Text style={styles.label}>Food Intake</Text>
                     <View style={styles.row}>
                         <View style={styles.inputContainer}>
-                            <TextInput 
+                            <TextInput
                                 style={styles.input}
                                 placeholder="amount"
                                 keyboardType="numeric"
@@ -224,69 +269,119 @@ export default function LogDailyNormal({ session, onBack }) {
                             />
                             <Text style={styles.unit}>g</Text>
                         </View>
-                        
-                        <Text style={{marginHorizontal: 10, fontSize: 14, color: '#555'}}>per</Text>
-                        
+
+                        <Text style={{ marginHorizontal: 10, fontSize: 14, color: '#555' }}>per</Text>
+
                         <View style={[styles.inputContainer]}>
-                             <TextInput style={styles.input} editable={false} />
+                            <TextInput style={styles.input} placeholder="meal" />
                         </View>
                     </View>
                 </View>
 
-                {/* Water Intake */}
-                <LevelSelector 
-                    label="Water Intake" 
-                    value={waterLevel} 
-                    onChange={setWaterLevel}
-                    iconSource={require('../../assets/water_intake.png')} 
-                />
+                {/* Water Intake - Changed to Input */}
+                <View style={styles.section}>
+                    <Text style={styles.label}>Water Intake</Text>
+                    <View style={styles.row}>
+                        <View style={styles.inputContainer}>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="amount"
+                                keyboardType="numeric"
+                                value={waterIntake}
+                                onChangeText={setWaterIntake}
+                            />
+                            <Text style={styles.unit}>ml</Text>
+                        </View>
+                    </View>
+                </View>
 
                 {/* Urine */}
-                <LevelSelector 
-                    label="Urine" 
-                    value={urineLevel} 
+                <LevelSelector
+                    label="Urine"
+                    value={urineLevel}
                     onChange={setUrineLevel}
                     iconSource={require('../../assets/Urine.png')}
                 />
 
                 {/* Urine Color Grid */}
-                <GridSelector 
-                    label="Urine Color" 
-                    data={urineColors} 
-                    selectedValue={urineColor} 
-                    onChange={setUrineColor} 
+                <GridSelector
+                    label="Urine Color"
+                    data={urineColors}
+                    selectedValue={urineColor}
+                    onChange={setUrineColor}
                 />
 
                 {/* Behavior Grid */}
-                <GridSelector 
-                    label="Behavior" 
-                    data={behaviors} 
-                    selectedValue={behavior} 
-                    onChange={setBehavior} 
+                <GridSelector
+                    label="Behavior"
+                    data={behaviors}
+                    selectedValue={behavior}
+                    onChange={setBehavior}
                 />
 
                 {/* Stool */}
-                <LevelSelector 
-                    label="Stool" 
-                    value={stoolLevel} 
+                <LevelSelector
+                    label="Stool"
+                    value={stoolLevel}
                     onChange={setStoolLevel}
                     iconSource={require('../../assets/Stool.png')}
                 />
 
                 {/* Stool Color Grid */}
-                <GridSelector 
-                    label="Stool Color" 
-                    data={stoolColors} 
-                    selectedValue={stoolColor} 
-                    onChange={setStoolColor} 
+                <GridSelector
+                    label="Stool Color"
+                    data={stoolColors}
+                    selectedValue={stoolColor}
+                    onChange={setStoolColor}
                 />
 
-                <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading}>
+                {status === 'Something off' && (
+                    <>
+                        {/* Vomit */}
+                        <LevelSelector
+                            label="vomit"
+                            value={vomitLevel}
+                            onChange={setVomitLevel}
+                            iconSource={require('../../assets/Stool_Color.png')}
+                        />
+
+                        {/* Vomit Color Grid */}
+                        <GridSelector
+                            label="vomit Color"
+                            isVomitColor={true}
+                            data={vomitColors}
+                            selectedValue={vomitColor}
+                            onChange={setVomitColor}
+                        />
+                    </>
+                )}
+
+
+
+                {/* Notes Section */}
+                <View style={styles.section}>
+                    <Text style={styles.label}>Notes</Text>
+                    <TextInput
+                        style={styles.notesInput}
+                        placeholder="Add some notes..."
+                        placeholderTextColor="#999"
+                        multiline
+                        numberOfLines={4}
+                        value={notes}
+                        onChangeText={setNotes}
+                    />
+                </View>
+
+                <TouchableOpacity
+                    style={[styles.saveButton, status === 'Something off' && styles.saveButtonOff]}
+                    onPress={handleSave}
+                    disabled={loading}
+                >
                     <Text style={styles.saveButtonText}>{loading ? "Saving..." : "Save Event"}</Text>
-                    <Ionicons name="checkmark-circle-outline" size={24} color="#fff" style={{marginLeft: 8}}/>
+                    <Ionicons name="checkmark-circle-outline" size={24} color="#fff" style={{ marginLeft: 8 }} />
                 </TouchableOpacity>
 
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 }

@@ -159,6 +159,7 @@ export default function App() {
 
       if (authScreen === 'Calendar') {
          return <CalendarScreen 
+            session={session}
             onNavigate={(screen) => setAuthScreen(screen)} 
          />;
       }

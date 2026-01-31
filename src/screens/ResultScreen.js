@@ -36,11 +36,11 @@ export default function ResultScreen({ onBack, onSave }) {
   const [selectedCondition, setSelectedCondition] = useState(null);
 
   const riskData = [
-    { label: "Kidney Disease", score: 0 },
-    { label: "Diabetes", score: 0 },
-    { label: "Urolithiasis", score: 0 },
-    { label: "Gum Disease", score: 0 },
-    { label: "Feline Panleukopenia", score: 0 },
+    { label: "Kidney Disease", score: 35 },
+    { label: "Diabetes", score: 20 },
+    { label: "Urolithiasis", score: 10 },
+    { label: "Gum Disease", score: 15 },
+    { label: "Feline Panleukopenia", score: 5 },
   ];
 
   // ===== Overall Score =====
