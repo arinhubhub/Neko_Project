@@ -9,10 +9,12 @@ import AssessmentScreen from "./src/screens/AssessmentScreen";
 import HomeScreenOld from "./src/screens/HomeScreenOld";
 import LogDailyNormal from "./src/screens/LogDailyNormal";
 import CalendarScreen from "./src/screens/CalendarScreen";
+import CommunityScreen from "./src/screens/CommunityScreen";
+import AddPostScreen from "./src/screens/AddPostScreen";
 
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState('SignIn');
+  const [currentScreen, setCurrentScreen] = useState('Community');
 
   const navigateToSignIn = () => setCurrentScreen('SignIn');
   const navigateToSignUp = () => setCurrentScreen('SignUp');
@@ -22,6 +24,8 @@ export default function App() {
   const navigateToHomeOld = () => setCurrentScreen("HomeOld");
   const navigateToLogDaily = () => setCurrentScreen("LogDaily");
   const navigateToCalendar = () => setCurrentScreen("Calendar");
+  const navigateToCommunity = () => setCurrentScreen("Community");
+  const navigateToAddPost = () => setCurrentScreen("AddPost");
 
 
 useEffect(() => {
@@ -44,11 +48,7 @@ useEffect(() => {
 
   return (
     <>
-      {currentScreen === 'SignIn' ? (
-        <SignInScreen onNavigate={navigateToSignUp} />
-      ) : (
-        <SignUpScreen onNavigate={navigateToSignIn} />
-      )}
+     
       {/* ===== หน้า Home (เพิ่มใหม่) ===== */}
       {currentScreen === 'Home' && (
         <HomeScreen 
@@ -78,6 +78,21 @@ useEffect(() => {
 {currentScreen === "Calendar" && (
   <CalendarScreen />
 )}
+{currentScreen === "Community" && (
+  <CommunityScreen
+    onBack={navigateToHome}
+    onAddPost={navigateToAddPost}
+
+  />
+)}
+{currentScreen === "AddPost" && (
+  <AddPostScreen
+    onBack={navigateToCommunity}
+  />
+)}
+
+
+
 
     
 
