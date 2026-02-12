@@ -44,9 +44,8 @@ const formatCounselingData = (data) => {
 
 // ===== Factory Methods =====
 const ResultScreenFactory = {
-  // 1. Fetch Assessment (คงเดิม หรือเชื่อม API ของคุณ)
+  // 1. Fetch Assessment
   async fetchAssessment(catId) {
-    // ... (ส่วนนี้ใช้โค้ดเดิมของคุณ หรือ Mock เดิมไปก่อนได้เลยครับ)
     await new Promise(resolve => setTimeout(resolve, 500));
     return {
       success: true,
@@ -59,16 +58,14 @@ const ResultScreenFactory = {
       ],
       overallRisk: "Moderate Risk",
       summaryTitle: "Moderate health risk detected",
-      summaryDesc: "Some changes were observed.",
+      summaryDesc: "Some changes were observed, but no serious health risks are detected at this time.",
     };
   },
 
-  // 2. [UPDATE] Fetch Guidance จาก Python Server
+  // 2. Fetch Guidance
   async fetchGuidance(condition, catId) {
     try {
-      // ⚠️ เปลี่ยน IP เป็น IP ของเครื่องคอมฯ คุณ (Run 'ipconfig' ดู IPv4)
-      // Android Emulator ใช้: 10.0.2.2
-      // เครื่องจริง/iOS ใช้: 192.168.x.x (วง Wi-Fi เดียวกัน)
+      // ⚠️ เปลี่ยน IP เป็น IP ของเครื่องคอมฯ คุณ
       const API_URL = "http://10.0.2.2:3000/api/guidance";
 
       const response = await fetch(API_URL, {
@@ -83,11 +80,10 @@ const ResultScreenFactory = {
 
       const data = await response.json();
 
-      // ส่ง JSON กลับไปให้ Component จัดการต่อ
       return {
         success: true,
-        preventionData: data.prevention, // ส่งทั้ง Object ไปเลย
-        counselingData: data.counseling  // ส่งทั้ง Object ไปเลย
+        preventionData: data.prevention,
+        counselingData: data.counseling
       };
 
     } catch (error) {
@@ -103,7 +99,6 @@ const ResultScreenFactory = {
   },
 
   async saveAssessment(payload) {
-    // ... (Mock Save เดิม)
     await new Promise(resolve => setTimeout(resolve, 1000));
     return { success: true, assessmentId: "mock-id-123" };
   }
@@ -120,7 +115,7 @@ export default function ResultScreen({ onBack, onSave, route }) {
   const [selectedConditionLabel, setSelectedConditionLabel] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Data State (เก็บ Object JSON)
+  // Data State
   const [preventionData, setPreventionData] = useState(null);
   const [counselingData, setCounselingData] = useState(null);
 
@@ -150,7 +145,7 @@ export default function ResultScreen({ onBack, onSave, route }) {
     loadInitialData();
   }, [catId]);
 
-  // Fetch Guidance เมื่อเลือกโรค
+  // Fetch Guidance
   useEffect(() => {
     if (!selectedConditionValue) {
       setPreventionData(null);
@@ -183,7 +178,6 @@ export default function ResultScreen({ onBack, onSave, route }) {
   }, [selectedConditionValue, catId]);
 
   const handleSave = async () => {
-    // ... (Logic Save เดิม)
     Alert.alert("Success", "บันทึกเรียบร้อย (Mock)");
   };
 
@@ -206,15 +200,37 @@ export default function ResultScreen({ onBack, onSave, route }) {
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 150 }} nestedScrollEnabled={true}>
-        {/* Risk Circle & Summary ... (เหมือนเดิม) */}
+        {/* Risk Circle */}
         <View style={styles.circleWrapper}>
           <View style={styles.circleBg}>
             <View style={styles.circleProgress} /><Text style={styles.riskText}>{overallRisk}</Text>
           </View>
           <Text style={styles.recommendText}>Closer monitoring recommended</Text>
+          <Text style={styles.subText}>Overall Health Risk</Text>
         </View>
 
-        {/* Risk Breakdown ... (เหมือนเดิม) */}
+        {/* ===== [ADDED] Summary (ส่วนที่หายไป) ===== */}
+        <View style={styles.summary}>
+          <Text style={styles.summaryTitle}>{summaryTitle}</Text>
+          <Text style={styles.summaryDesc}>{summaryDesc}</Text>
+        </View>
+
+        {/* ===== [ADDED] Risk Breakdown (ส่วนกราฟแท่งที่หายไป) ===== */}
+        <Text style={styles.sectionTitle}>Risk Breakdown</Text>
+        {riskData.map((item, index) => (
+          <View key={index} style={styles.riskItem}>
+            <View style={styles.riskRow}>
+              <Text style={styles.riskLabel}>{item.label}</Text>
+              <Text style={styles.riskValue}>{item.value}</Text>
+            </View>
+            <View style={styles.riskBarBg}>
+              {item.value !== "No Risk" && (
+                <View style={[styles.riskBarFill, { width: `${item.score || 25}%` }]} />
+              )}
+            </View>
+          </View>
+        ))}
+        {/* ======================================================= */}
 
         <Text style={styles.sectionTitle}>Recommended Approach</Text>
 
@@ -256,7 +272,7 @@ export default function ResultScreen({ onBack, onSave, route }) {
             )}
           </View>
 
-          {/* Content: แสดงผล Prevention */}
+          {/* Content: Prevention */}
           {loadingGuidance ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color="#1abc9c" />
@@ -264,7 +280,6 @@ export default function ResultScreen({ onBack, onSave, route }) {
             </View>
           ) : (
             <View>
-              {/* ถ้ามีข้อมูล ให้แสดง Title ตัวหนา และเนื้อหา */}
               {preventionData ? (
                 <>
                   <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8, color: '#333' }}>
@@ -309,7 +324,7 @@ export default function ResultScreen({ onBack, onSave, route }) {
 
       </ScrollView>
 
-      {/* Save Button (เหมือนเดิม) */}
+      {/* Save Button */}
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.saveButtonText}>Save Assessment</Text>
       </TouchableOpacity>
