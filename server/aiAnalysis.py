@@ -94,7 +94,7 @@ def get_guidance():
         # 2. เรียก Gemini
         # หมายเหตุ: เช็ค model ว่า account คุณรองรับตัวไหน (gemini-2.0-flash หรือ gemini-1.5-flash)
         response = client.models.generate_content(
-            model="gemini-2.0-flash", 
+            model="gemini-3-flash-preview", 
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json"
