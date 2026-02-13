@@ -1,38 +1,18 @@
 import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons, MaterialIcons, Feather } from "@expo/vector-icons";
 
-const { width } = Dimensions.get("window");
-
 export default function BottomNav({ current, onNavigate }) {
-  const isActive = (name) => current === name;
-
   return (
     <View style={styles.container}>
+      
       {/* Home */}
       <TouchableOpacity
         style={styles.item}
         onPress={() => onNavigate("Home")}
       >
-        <Ionicons
-          name="home-outline"
-          size={22}
-          color={isActive("Home") ? "#147C78" : "#484C52"}
-        />
-        <Text
-          style={[
-            styles.label,
-            isActive("Home") && styles.activeLabel,
-          ]}
-        >
-          Home
-        </Text>
+        <Ionicons name="home-outline" size={30} color="#484C52" />
+        <Text style={styles.label}>Home</Text>
       </TouchableOpacity>
 
       {/* Calendar */}
@@ -40,29 +20,17 @@ export default function BottomNav({ current, onNavigate }) {
         style={styles.item}
         onPress={() => onNavigate("Calendar")}
       >
-        <Feather
-          name="calendar"
-          size={22}
-          color={isActive("Calendar") ? "#147C78" : "#484C52"}
-        />
-        <Text
-          style={[
-            styles.label,
-            isActive("Calendar") && styles.activeLabel,
-          ]}
-        >
-          Calendar
-        </Text>
+        <Feather name="calendar" size={30} color="#484C52" />
+        <Text style={styles.label}>Calendar</Text>
       </TouchableOpacity>
 
       {/* Camera */}
       <TouchableOpacity
         style={styles.cameraWrapper}
         onPress={() => onNavigate("Camera")}
-        activeOpacity={0.85}
       >
         <View style={styles.cameraButton}>
-          <Ionicons name="camera" size={26} color="#FFFFFF" />
+          <Ionicons name="camera" size={30} color="#FFFFFF" />
         </View>
       </TouchableOpacity>
 
@@ -71,57 +39,37 @@ export default function BottomNav({ current, onNavigate }) {
         style={styles.item}
         onPress={() => onNavigate("Overview")}
       >
-        <MaterialIcons
-          name="bar-chart"
-          size={22}
-          color={isActive("Overview") ? "#147C78" : "#484C52"}
-        />
-        <Text
-          style={[
-            styles.label,
-            isActive("Overview") && styles.activeLabel,
-          ]}
-        >
-          Overview
-        </Text>
+        <MaterialIcons name="bar-chart" size={33} color="#484C52" />
+        <Text style={styles.label}>Overview</Text>
       </TouchableOpacity>
 
       {/* Community */}
       <TouchableOpacity
         style={styles.item}
-        onPress={() => onNavigate("Community")}
+        onPress={() => onNavigate("MainTabNavigator")}
       >
-        <Ionicons
-          name="people-outline"
-          size={22}
-          color={isActive("Community") ? "#147C78" : "#484C52"}
-        />
-        <Text
-          style={[
-            styles.label,
-            isActive("Community") && styles.activeLabel,
-          ]}
-        >
-          Community
-        </Text>
+        <Ionicons name="people-outline" size={30} color="#484C52" />
+        <Text style={styles.label}>Community</Text>
       </TouchableOpacity>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    width: width - 24, 
-    height: 74,
+    width: "100%",
+   height: 90,
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    borderTopLeftRadius: 35,
+    borderTopRightRadius: 35,
 
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-
+    
     position: "absolute",
-    bottom: 12,
+    bottom: 0,
     alignSelf: "center",
 
     shadowColor: "#000",
@@ -134,22 +82,17 @@ const styles = StyleSheet.create({
   item: {
     alignItems: "center",
     justifyContent: "center",
-    flex: 1,
   },
 
   label: {
     marginTop: 4,
+    fontFamily: "Poppins-Regular",
     fontSize: 12,
     color: "#484C52",
   },
 
-  activeLabel: {
-    color: "#147C78",
-    fontWeight: "600",
-  },
-
   cameraWrapper: {
-    marginTop: -24,
+    marginTop: -10,
   },
 
   cameraButton: {
@@ -161,7 +104,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
 
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 6,

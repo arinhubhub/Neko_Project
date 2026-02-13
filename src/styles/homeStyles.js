@@ -1,256 +1,211 @@
 import { StyleSheet } from "react-native";
 
-export default StyleSheet.create({
-  /* ===== Screen ===== */
+const styles = StyleSheet.create({
+  /* ====== หน้า HOME ====== */
   container: {
     flex: 1,
-    backgroundColor: "#B2E1DB",
+    backgroundColor: "transparent", // ✅ Remove solid bg to see main texture
   },
 
-  /*  Header  */
+  /* ====== HEADER ====== */
   headerBg: {
-    height: 64,
-    paddingHorizontal: 16,
+    height: 60,
+    width: "100%",
+    backgroundColor: "transparent", 
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#B2E1DB",
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
 
-  headerTitle: {
+  titleContainer: {
+     flexDirection: 'row',
+     alignItems: 'center',
+     gap: 5
+  },
+
+  title: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#194d4a",
+    color: "#4A5568", // Dark Gray
     letterSpacing: 1,
-  },
-
-  avatarPlaceholder: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#E3F4F2",
   },
 
   iconGroup: {
     flexDirection: "row",
-    gap: 8,
+    gap: 15,
   },
 
   iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#E3F4F2",
-    alignItems: "center",
-    justifyContent: "center",
+    padding: 5,
   },
 
-  /* ===== Profile Section ===== */
-  profileSection: {
-    marginTop: 24,
-    marginBottom: 16,
-    alignItems: "center",
+  /* ====== HERO SECTION (Circle Cat) ====== */
+  heroSection: {
+      alignItems: 'center',
+      marginTop: 20,
+      marginBottom: 20,
+  },
+  
+  circleCatContainer: {
+      width: 220,
+      height: 220,
+      borderRadius: 110,
+      backgroundColor: 'rgba(153, 213, 207, 0.4)', // Slightly transparent green
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 15,
+      position: 'relative',
+  },
+  
+  circleCat: {
+      width: 190,
+      height: 190,
+      borderRadius: 95,
+      borderWidth: 4,
+      borderColor: '#FFF',
   },
 
-  profileOuter: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: "#E0E0E0",
-    justifyContent: "center",
-    alignItems: "center",
+  loveIcon: {
+      position: 'absolute',
+      bottom: 20,
+      right: 20,
+      backgroundColor: '#4AA99C',
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 3,
+      borderColor: '#FFF',
   },
 
-  profileInner: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#E8F6F4", // placeholder
+  heroTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: '#000',
+      textAlign: 'center',
+      width: 250,
+      lineHeight: 32,
   },
 
-  /* ===== Text Section ===== */
-  textSection: {
-    alignItems: "center",
-    paddingHorizontal: 24,
-    marginBottom: 24,
+  lastCheckText: {
+      fontSize: 12,
+      color: '#A0AEC0',
+      marginTop: 5,
   },
 
-  welcomeTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#000",
-    marginBottom: 8,
+  /* ====== ACTION BUTTONS ====== */
+  actionContainer: {
+      paddingHorizontal: 20,
+      alignItems: 'center',
   },
 
-  welcomeDesc: {
-    fontSize: 15,
-    color: "#444",
-    textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 12,
-  },
-
-  statusText: {
-    fontSize: 13,
-    color: "#888",
-  },
-
-  /* ===== Assess Button ===== */
   assessButton: {
-    width: "85%",
-    alignSelf: "center",
-    backgroundColor: "#147C78",
-    paddingVertical: 16,
-    borderRadius: 30,
+    width: '100%',
+    height: 55,
+    backgroundColor: "#64B5B0", // Teal color
+    borderRadius: 20,
+    flexDirection: 'row',
+    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 15,
+    // Remove shadow box effect
   },
 
   assessButtonText: {
+    fontSize: 18,
+    fontWeight: "bold",
     color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
+    marginLeft: 10,
   },
 
-  /* ===== Photo Health Card ===== */
+  /* ====== PHOTO CARD ====== */
   photoCard: {
-    width: "90%",
-    alignSelf: "center",
-    backgroundColor: "#FFFFFF",
+    width: '100%',
+    // height: 90, // Removed fixed height
+    minHeight: 90, // Optional: Keep a minimum height if desired
+    backgroundColor: "rgba(178, 223, 219, 0.3)", 
     borderRadius: 20,
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 15, // Added vertical padding
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 24,
-
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    justifyContent: "space-between",
+    marginBottom: 20,
   },
 
   photoLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
+      flex: 1,
+      paddingRight: 10,
   },
 
-  photoIcon: {
-    fontSize: 28,
-    marginRight: 12,
-  },
-
-  photoTextGroup: {
-    flexShrink: 1,
-  },
+  
 
   photoTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    marginBottom: 4,
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2D6A64",
+    marginBottom: 5,
   },
 
   photoDesc: {
-    fontSize: 12,
-    color: "#666",
+    fontSize: 11,
+    color: "#565619",
   },
-
+  
   photoBtn: {
-    backgroundColor: "#E3F4F2",
-    paddingHorizontal: 14,
+    backgroundColor: "#00796B",
     paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    borderRadius: 8,
   },
-
+  
   photoBtnText: {
-    fontSize: 12,
-    color: "#147C78",
-    fontWeight: "600",
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#FFF",
   },
 
-  /* ===== Getting Started ===== */
-  gettingStartedSection: {
-    width: "90%",
-    alignSelf: "center",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 24,
+  /* ====== LOG DAILY CARD (Image Background) ====== */
+  dailyLogCard: {
+      width: '90%',
+      height: 140,
+      borderRadius: 20,
+      overflow: 'hidden',
+      marginBottom: 10, // Reduced from 100 to keep it closer to other elements
+      alignSelf: 'center',
   },
+  
+  dailyLogBg: {
+      width: '100%',
+      height: '100%',
+      justifyContent: 'center', 
+      alignItems: 'center',    
 
-  gettingStartedTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    marginBottom: 12,
   },
+  
+  dailyLogTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: '#FFF',
+      textAlign: 'center', 
+      textShadowColor: 'rgba(0,0,0,0.7)',
+      textShadowOffset: {width: 0, height: 1},
+      textShadowRadius: 5,
+      marginBottom: 5,
+  },
+  
+  dailyLogDesc: {
+     fontSize: 14,
+     color: '#F1F8E9',
+     textAlign: 'center',
+     textShadowColor: 'rgba(0,0,0,0.7)',
+     textShadowOffset: {width: 0, height: 1},
+     textShadowRadius: 5,
+  }
 
-  statusItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-
-  checkCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: "#147C78",
-    marginRight: 10,
-  },
-
-  checkDone: {
-    backgroundColor: "#147C78",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  checkIcon: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-
-  statusItemText: {
-    fontSize: 13,
-    color: "#333",
-  },
-
-  /* ===== Smart Monitoring ===== */
-  smartCard: {
-    width: "90%",
-    alignSelf: "center",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 140, // ⭐ กัน BottomNav
-  },
-
-  smartTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    marginBottom: 6,
-  },
-
-  smartDesc: {
-    fontSize: 12,
-    color: "#666",
-  },
-
-  setupBtn: {
-    backgroundColor: "#147C78",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginLeft: 12,
-  },
-
-  setupBtnText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
-  },
 });
+
+export default styles;

@@ -7,51 +7,53 @@ import {
 } from "react-native";
 import styles from "../styles/resultStyles";
 
-export default function ResultScreen({ onBack, onSave }) {
-  const [selectedDisease, setSelectedDisease] = useState(null);
-  const [showDropdown, setShowDropdown] = useState(false);
-
-  /* ===== Mock risk (รองรับ backend ในอนาคต) ===== */
-  const riskLevel = "moderate"; // low | moderate | high
-
-  const riskConfig = {
-    low: {
-      text: "Low Risk",
-      color: "#6BD3C6",
-      rotate: "45deg",
-      desc: "Stable condition",
-    },
-    moderate: {
-      text: "Moderate Risk",
-      color: "#FFA86E",
-      rotate: "135deg",
-      desc: "Closer monitoring recommended",
-    },
-    high: {
-      text: "High Risk",
-      color: "#FF6B6B",
-      rotate: "225deg",
-      desc: "Veterinary consultation advised",
-    },
+// ===== Risk Helper =====
+const getRiskMeta = (score = 0) => {
+  if (score <= 20)
+    return { label: "Healthy", color: "#6FCF97", text: "No significant risk" };
+  if (score <= 40)
+    return { label: "Low Risk", color: "#F2C94C", text: "Minor changes" };
+  if (score <= 60)
+    return {
+      label: "Moderate Risk",
+      color: "#F2994A",
+      text: "Closer monitoring recommended",
+    };
+  if (score <= 80)
+    return {
+      label: "High Risk",
+      color: "#EB5757",
+      text: "Vet consultation advised",
+    };
+  return {
+    label: "Critical",
+    color: "#D32F2F",
+    text: "Immediate attention",
   };
+};
 
-  const currentRisk = riskConfig[riskLevel];
+export default function ResultScreen({ onBack, onSave }) {
+  const [selectedCondition, setSelectedCondition] = useState(null);
 
-  const diseases = [
-    "Chronic Kidney Disease (CKD)",
-    "FLUTD / Urolithiasis",
-    "Diabetes Mellitus",
-    "Feline Panleukopenia",
-    "Gum Disease",
+  const riskData = [
+    { label: "Kidney Disease", score: 35 },
+    { label: "Diabetes", score: 20 },
+    { label: "Urolithiasis", score: 10 },
+    { label: "Gum Disease", score: 15 },
+    { label: "Feline Panleukopenia", score: 5 },
   ];
 
-  const riskBreakdown = [
-    { label: "Kidney Disease", value: "Low Risk" },
-    { label: "Diabetes", value: "No Risk" },
-    { label: "Urolithiasis", value: "Low Risk" },
-    { label: "Gum Disease", value: "Low Risk" },
-    { label: "Feline Panleukopenia", value: "Low Risk" },
-  ];
+  // ===== Overall Score =====
+  const overallScore =
+    riskData.length > 0
+      ? Math.round(
+          riskData.reduce((sum, r) => sum + (r.score || 0), 0) / riskData.length
+        )
+      : 0;
+
+  const overallMeta = getRiskMeta(overallScore);
+
+  const conditions = ["Vomiting", "Diarrhea", "Lethargy"];
 
   return (
     <View style={styles.container}>
@@ -64,109 +66,115 @@ export default function ResultScreen({ onBack, onSave }) {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 140 }}>
-        {/* ===== Risk Circle (Pure View) ===== */}
-        <View style={styles.circleWrapper}>
-          <View style={styles.circleBase}>
-            <View
-              style={[
-                styles.circleProgress,
-                {
-                  borderColor: currentRisk.color,
-                  transform: [{ rotate: currentRisk.rotate }],
-                },
-              ]}
-            />
-            <Text style={[styles.riskText, { color: currentRisk.color }]}>
-              {currentRisk.text}
-            </Text>
-          </View>
+      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+     {/* ===== Risk Circle ===== */}
+<View style={styles.circleWrapper}>
+  <View style={styles.circleBg}>
+    <View
+      style={[
+        styles.circleProgress,
+        {
+          borderColor: overallMeta.color,
+          transform: [{ rotate: `${(overallScore / 100) * 360}deg` }],
+        },
+      ]}
+    />
+    <Text style={[styles.riskText, { color: overallMeta.color }]}>
+      {overallMeta.label}
+    </Text>
+  </View>
 
-          <Text style={[styles.recommendText, { color: currentRisk.color }]}>
-            {currentRisk.desc}
-          </Text>
-          <Text style={styles.subText}>Overall Health Risk</Text>
-        </View>
+  <Text style={[styles.recommendText, { color: overallMeta.color }]}>
+    {overallMeta.text}
+  </Text>
+  <Text style={styles.subText}>Overall Health Risk ({overallScore}%)</Text>
+</View>
+
 
         {/* ===== Summary ===== */}
         <View style={styles.summary}>
           <Text style={styles.summaryTitle}>
-            {currentRisk.text} detected
+            Moderate health risk detected
           </Text>
           <Text style={styles.summaryDesc}>
-            Health indicators show changes that require monitoring, but no
-            immediate emergency is detected at this time.
+            Some changes were observed, but no serious health risks are detected
+            at this time.
           </Text>
         </View>
 
         {/* ===== Risk Breakdown ===== */}
-        <Text style={styles.sectionTitle}>Risk Breakdown</Text>
+<Text style={styles.sectionTitle}>Risk Breakdown</Text>
 
-        {riskBreakdown.map((item, index) => (
-          <View key={index} style={styles.riskItem}>
-            <View style={styles.riskRow}>
-              <Text style={styles.riskLabel}>{item.label}</Text>
-              <Text style={styles.riskValue}>{item.value}</Text>
-            </View>
+{riskData.map((item, index) => {
+  const meta = getRiskMeta(item.score || 0);
 
-            <View style={styles.riskBarBg}>
-              {item.value !== "No Risk" && (
-                <View style={styles.riskBarFill} />
-              )}
-            </View>
-          </View>
-        ))}
+  return (
+    <View key={index} style={styles.riskItem}>
+      <View style={styles.riskRow}>
+        <Text style={styles.riskLabel}>{item.label}</Text>
+        <Text style={[styles.riskValue, { color: meta.color }]}>
+          {item.score}% · {meta.label}
+        </Text>
+      </View>
 
-        {/* ===== Disease & Counseling ===== */}
-        <View style={styles.centerWrapper}>
-          {/* Disease Box */}
-          <View style={styles.diseaseBox}>
-            <Text style={styles.boxTitle}>Disease</Text>
+      <View style={styles.riskBarBg}>
+        <View
+          style={[
+            styles.riskBarFill,
+            {
+              width: `${item.score || 0}%`,
+              backgroundColor: meta.color,
+            },
+          ]}
+        />
+      </View>
+    </View>
+  );
+})}
 
+
+
+        {/* ===== Recommended Approach ===== */}
+        <Text style={styles.sectionTitle}>Recommended Approach</Text>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Disease Prevention</Text>
+
+          {/* ===== Selectable Condition ===== */}
+          {conditions.map((item) => (
             <TouchableOpacity
-              style={styles.dropdownHeader}
-              onPress={() => setShowDropdown(!showDropdown)}
+              key={item}
+              style={[
+                styles.optionItem,
+                selectedCondition === item && styles.optionActive,
+              ]}
+              onPress={() => setSelectedCondition(item)}
             >
-              <Text style={styles.dropdownText}>
-                {selectedDisease || "Select disease"}
+              <Text
+                style={[
+                  styles.optionText,
+                  selectedCondition === item && styles.optionTextActive,
+                ]}
+              >
+                {item}
               </Text>
-              <Text>⌄</Text>
             </TouchableOpacity>
+          ))}
 
-            {showDropdown && (
-              <View style={styles.dropdownList}>
-                {diseases.map((item) => (
-                  <TouchableOpacity
-                    key={item}
-                    style={styles.dropdownItem}
-                    onPress={() => {
-                      setSelectedDisease(item);
-                      setShowDropdown(false);
-                    }}
-                  >
-                    <Text style={styles.dropdownItemText}>{item}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-
-          {/* Counseling Box */}
-          <View style={styles.counselingBox}>
-            <Text style={styles.boxTitle}>Counseling</Text>
-            <Text style={styles.counselingText}>
-              {selectedDisease
-                ? `Care guidance and monitoring advice for ${selectedDisease} will be shown here once connected to the backend.`
-                : "Please select a disease to view counseling guidance."}
-            </Text>
-          </View>
+          <Text style={styles.cardDesc}>
+            {selectedCondition
+              ? `Guidance for ${selectedCondition.toLowerCase()} will be shown here.`
+              : "Please select a condition to see preventive advice."}
+          </Text>
         </View>
       </ScrollView>
-
-      {/* ===== Save Button ===== */}
-      <TouchableOpacity style={styles.saveButton} onPress={onSave}>
-        <Text style={styles.saveButtonText}>Save Assessment</Text>
-      </TouchableOpacity>
+{/* ===== Save Button ===== */}
+<TouchableOpacity
+  style={styles.saveButton}
+  onPress={() => onSave && onSave()}
+>
+  <Text style={styles.saveButtonText}>Save Assessment</Text>
+</TouchableOpacity>
     </View>
   );
 }

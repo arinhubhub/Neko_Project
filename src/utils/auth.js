@@ -1,5 +1,5 @@
 // src/utils/auth.js
 export const currentUser = {
   id: "u1",
-  name: "You",
+  name: "Neko_Lover",
 };

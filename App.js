@@ -1,100 +1,242 @@
 import React, { useState, useEffect } from 'react';
-import SignInScreen from './src/screens/SignInScreen';
 import { View, ActivityIndicator, AppState } from 'react-native';
+import SignInScreen from './src/screens/SignInScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
+import ProfileScreen from './src/screens/profileScreen';
+import CatProfile from './src/screens/catprofile';
+import UserInfoScreen from './src/screens/UserInfoScreen';
 import supabase from './src/screens/config/supabaseClient';
-import HomeScreen from './src/screens/HomeScreen';
-import ResultScreen from "./src/screens/ResultScreen";
-import AssessmentScreen from "./src/screens/AssessmentScreen";
-import HomeScreenOld from "./src/screens/HomeScreenOld";
-import LogDailyNormal from "./src/screens/LogDailyNormal";
-import CalendarScreen from "./src/screens/CalendarScreen";
-import CommunityScreen from "./src/screens/CommunityScreen";
-import AddPostScreen from "./src/screens/AddPostScreen";
+import Dashboard from './src/screens/Dashbord';
 
+// ✅ 1. Import ไฟล์ LogDailyNormal เข้ามา
+import LogDailyNormal from './src/screens/LogDailyNormal';
+import HomeScreen from './src/screens/HomeScreen'; // อย่าลืม Import Home ด้วยถ้าจะใช้
+import CalendarScreen from './src/screens/CalendarScreen';
+import ResultScreen from './src/screens/ResultScreen';
+// import AssessmentScreen, HomeScreenOld... (Import หน้าอื่นๆ ตามที่มีในโปรเจกต์จริง)
+//import Community
+import MainTabNavigator from './src/screens/MainTabNavigator';
+
+
+
+import { useFonts } from 'expo-font';
+import {
+  Inter_400Regular,
+  Inter_700Bold,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_300Light
+} from '@expo-google-fonts/inter';
+import { Poppins_400Regular } from '@expo-google-fonts/poppins';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState('Community');
+  const [fontsLoaded] = useFonts({
+    'Inter-Regular': Inter_400Regular,
+    'Inter-Bold': Inter_700Bold,
+    'Inter-Medium': Inter_500Medium,
+    'Inter-SemiBold': Inter_600SemiBold,
+    'Inter-Light': Inter_300Light,
+    'Poppins-Regular': Poppins_400Regular,
+  });
 
-  const navigateToSignIn = () => setCurrentScreen('SignIn');
+  const [currentScreen, setCurrentScreen] = useState('SignIn');
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [authScreen, setAuthScreen] = useState('Home');
+  const [catId, setCatId] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false); // ✅ Track if checking profile
+
+  // Fix Logout: Should actually sign out
+  const handleSignOut = async () => {
+    setLoading(true);
+    await supabase.auth.signOut();
+    setSession(null);
+    setAuthScreen('Home'); // Reset for next login
+    setCurrentScreen('SignIn');
+    setLoading(false);
+  };
+
+  const navigateToSignIn = () => {
+    handleSignOut(); // Logout if navigating to SignIn
+  };
   const navigateToSignUp = () => setCurrentScreen('SignUp');
-  const navigateToHome = () => setCurrentScreen('Home');
-  const navigateToResult = () => setCurrentScreen('Result');
-  const navigateToAssessment = () => setCurrentScreen('Assessment');
-  const navigateToHomeOld = () => setCurrentScreen("HomeOld");
-  const navigateToLogDaily = () => setCurrentScreen("LogDaily");
-  const navigateToCalendar = () => setCurrentScreen("Calendar");
-  const navigateToCommunity = () => setCurrentScreen("Community");
-  const navigateToAddPost = () => setCurrentScreen("AddPost");
 
+  const navigateToLogDaily = () => setAuthScreen('LogDaily');
+  const navigateToHome = () => setAuthScreen('Home');
 
-useEffect(() => {
-    // ฟังก์ชันจัดการสถานะแอป (เปิด/พับหน้าจอ)
-    const handleAppStateChange = (state) => {
-      if (state === 'active') {
-        supabase.auth.startAutoRefresh();
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        supabase.auth.signOut();
+        setSession(null);
       } else {
-        supabase.auth.stopAutoRefresh();
+        setSession(session);
+        if (session) checkUserProfileStatus(session); // Check if new user
       }
-    };
+      setLoading(false);
+    });
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        checkUserProfileStatus(session);
+      } else {
+        setAuthScreen('Home'); // Reset
+      }
+    });
 
-    return () => {
-      subscription.remove();
-    };
+    return () => subscription.unsubscribe();
   }, []);
-  
 
+  // Check if user has profile and cat
+  const checkUserProfileStatus = async (session) => {
+    if (!session?.user) return;
+
+    try {
+      setProfileLoading(true); // Start check
+      // 1. Check Profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileError || !profile || !profile.name) {
+        setAuthScreen('Profile'); // Go to Profile fill
+        return;
+      }
+
+      // 2. Check Cat
+      const { data: cat, error: catError } = await supabase
+        .from('cats')
+        .select('id')
+        .eq('owner_id', session.user.id)
+        .limit(1)
+        .single();
+
+      if (catError || !cat) {
+        setAuthScreen('CatProfile'); // Go to Cat Profile
+        return;
+      }
+
+      // If all good, explicitly set to Home
+      setAuthScreen('Home');
+    } catch (err) {
+      console.log("Check status error:", err);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+
+  if (!fontsLoaded || loading || (session && profileLoading)) { // ✅ Wait for profile check if session exists
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#00695C" />
+      </View>
+    );
+  }
+
+  // ส่วนจัดการ Session (ถ้าล็อกอินแล้ว)
+  if (session && !loading) {
+    if (authScreen === 'CatProfile') {
+      return <CatProfile session={session} onNavigateToHome={() => setAuthScreen('Home')} />;
+    }
+    if (authScreen === 'Profile') {
+      return <ProfileScreen session={session} onNavigateToCatProfile={() => setAuthScreen('CatProfile')} />;
+    }
+    if (authScreen === 'UserInfo') {
+      return <UserInfoScreen
+        session={session}
+        catId={catId}
+        onLogout={() => supabase.auth.signOut()}
+        onMissingProfile={() => setAuthScreen('Profile')}
+        onBack={() => setAuthScreen('Home')} // ✅ Back button support
+      />;
+    }
+
+    if (authScreen === 'LogDaily') {
+      return <LogDailyNormal
+        session={session}
+        onBack={() => setAuthScreen('Home')}
+      />;
+    }
+
+    if (authScreen === 'Calendar') {
+      return <CalendarScreen
+        session={session}
+        onNavigate={(screen) => setAuthScreen(screen)}
+      />;
+    }
+
+    if (authScreen === 'Result') {
+      return <ResultScreen
+        onBack={() => setAuthScreen('Home')}
+        onSave={() => setAuthScreen('Home')}
+      />;
+    }
+
+    if (authScreen === 'MainTabNavigator') {
+      return (
+        <MainTabNavigator
+          session={session}
+          onBack={() => setAuthScreen('Home')}
+          initialTab="Community"
+          onNavigate={(screen) => setAuthScreen(screen)}
+        />
+      );
+    }
+
+
+    // ✅ Default Home
+    return <HomeScreen
+      onLogout={navigateToSignIn}
+      onLogDaily={() => setAuthScreen('LogDaily')}
+      onAssess={() => setAuthScreen('Result')}
+      onSetting={() => setAuthScreen('UserInfo')} // ✅ Go to Settings (UserInfo)
+      onNavigate={(screen) => setAuthScreen(screen)}
+    />;
+  }
+
+  // ส่วนจัดการหน้าจอ (ถ้ายังไม่ล็อกอิน หรือ flow ปกติ)
   return (
     <>
-     
-      {/* ===== หน้า Home (เพิ่มใหม่) ===== */}
+      {currentScreen === 'SignIn' && (
+        <SignInScreen onNavigate={navigateToSignUp} />
+      )}
+
+      {currentScreen === 'SignUp' && (
+        <SignUpScreen onNavigate={navigateToSignIn} />
+      )}
+
+      {/* ===== หน้า Home ===== */}
       {currentScreen === 'Home' && (
-        <HomeScreen 
-          onLogout={navigateToSignIn} 
-          onAssess={navigateToResult}
-          onPhotoAssess={navigateToAssessment}
+        <HomeScreen
+          onLogout={navigateToSignIn}
+          // ต้องส่ง props ไปให้กดแล้วไปหน้า LogDaily ได้
+          onLogDaily={navigateToLogDaily}
         />
       )}
-      {currentScreen === 'Assessment' && (
-  <AssessmentScreen
-    onBack={navigateToHome}
-    onResult={navigateToResult}
-  />
-    )}
-    {currentScreen === 'Result' && (
-  <ResultScreen onSave={navigateToHomeOld} />
-)}
-{currentScreen === 'HomeOld' && (
-  <HomeScreenOld
-  onAssess={navigateToResult}
-  onLogDaily={navigateToLogDaily}
-  />
-)}
-{currentScreen === "LogDaily" && (
-  <LogDailyNormal />
-)}
-{currentScreen === "Calendar" && (
-  <CalendarScreen />
-)}
-{currentScreen === "Community" && (
-  <CommunityScreen
-    onBack={navigateToHome}
-    onAddPost={navigateToAddPost}
 
-  />
-)}
-{currentScreen === "AddPost" && (
-  <AddPostScreen
-    onBack={navigateToCommunity}
-  />
-)}
+      {/* ===== ✅ 3. เพิ่มหน้า LogDaily ตรงนี้ ===== */}
+      {/* ===== ✅ 3. เพิ่มหน้า LogDaily ตรงนี้ ===== */}
+      {currentScreen === 'LogDaily' && (
+        <LogDailyNormal
+          session={session}
+          onBack={navigateToHome}
+        />
+      )}
 
 
-
-
-    
+      {/* ===== หน้า Community MainTap ===== */}
+      {currentScreen === 'MainTabNavigator' && (
+        <MainTabNavigator
+          session={session}
+          onBack={() => setCurrentScreen('Home')}
+          initialTab="Community"
+          onNavigate={(screen) => setCurrentScreen(screen)}
+        />
+      )}
 
     </>
   );
