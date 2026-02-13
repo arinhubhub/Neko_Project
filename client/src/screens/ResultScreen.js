@@ -19,7 +19,16 @@ const DISEASE_OPTIONS = [
   { label: "โรคเบาหวาน", value: "Diabetes" },
 ];
 
-// ===== Helper function: จัดรูปแบบ JSON ให้เป็น String สวยๆ =====
+// ===== ค่าเริ่มต้น (Default Config: 0 / No Data) =====
+const INITIAL_RISK_DATA = [
+  { label: "Kidney Disease", value: "No Data", score: 0 },
+  { label: "Diabetes", value: "No Data", score: 0 },
+  { label: "Urolithiasis", value: "No Data", score: 0 },
+  { label: "Gum Disease", value: "No Data", score: 0 },
+  { label: "Feline Panleukopenia", value: "No Data", score: 0 },
+];
+
+// ===== Helper Functions =====
 const formatPreventionData = (data) => {
   if (!data) return "";
   let text = `${data.intro}\n\n`;
@@ -46,28 +55,28 @@ const formatCounselingData = (data) => {
 const ResultScreenFactory = {
   // 1. Fetch Assessment
   async fetchAssessment(catId) {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return {
-      success: true,
-      riskData: [
-        { label: "Kidney Disease", value: "Low Risk", score: 30 },
-        { label: "Diabetes", value: "No Risk", score: 5 },
-        { label: "Urolithiasis", value: "Low Risk", score: 25 },
-        { label: "Gum Disease", value: "Low Risk", score: 40 },
-        { label: "Feline Panleukopenia", value: "Low Risk", score: 20 },
-      ],
-      overallRisk: "Moderate Risk",
-      summaryTitle: "Moderate health risk detected",
-      summaryDesc: "Some changes were observed, but no serious health risks are detected at this time.",
-    };
+    try {
+      // จำลอง Delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // ✅ แก้ไข: ส่งค่า Default (0 / No Data) กลับไปแทนค่า Mockup เดิม
+      return {
+        success: true,
+        riskData: INITIAL_RISK_DATA,
+        overallRisk: "Waiting for results...",
+        summaryTitle: "Analyzing Data",
+        summaryDesc: "Please wait while we process the health assessment...",
+      };
+    } catch (error) {
+      console.error("fetchAssessment error:", error);
+      return { success: false, error: error.message };
+    }
   },
 
   // 2. Fetch Guidance
   async fetchGuidance(condition, catId) {
     try {
-      // ⚠️ เปลี่ยน IP เป็น IP ของเครื่องคอมฯ คุณ
       const API_URL = "http://10.0.2.2:3000/api/guidance";
-
       const response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -79,15 +88,13 @@ const ResultScreenFactory = {
       }
 
       const data = await response.json();
-
       return {
         success: true,
         preventionData: data.prevention,
         counselingData: data.counseling
       };
-
     } catch (error) {
-      console.error("❌ fetchGuidance error:", error.message);
+      console.error("fetchGuidance error:", error.message);
       return { success: false, error: error.message };
     }
   },
@@ -110,18 +117,16 @@ export default function ResultScreen({ onBack, onSave, route }) {
   const [loadingGuidance, setLoadingGuidance] = useState(false);
   const [savingAssessment, setSavingAssessment] = useState(false);
 
-  // Dropdown State
+  // Dropdown & Data State
   const [selectedConditionValue, setSelectedConditionValue] = useState(null);
   const [selectedConditionLabel, setSelectedConditionLabel] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  // Data State
   const [preventionData, setPreventionData] = useState(null);
   const [counselingData, setCounselingData] = useState(null);
 
-  // API Data
-  const [riskData, setRiskData] = useState([]);
-  const [overallRisk, setOverallRisk] = useState("Moderate Risk");
+  // API Data State: เริ่มต้นด้วยค่าว่าง (0)
+  const [riskData, setRiskData] = useState(INITIAL_RISK_DATA);
+  const [overallRisk, setOverallRisk] = useState("Unknown");
   const [summaryTitle, setSummaryTitle] = useState("");
   const [summaryDesc, setSummaryDesc] = useState("");
 
@@ -152,28 +157,19 @@ export default function ResultScreen({ onBack, onSave, route }) {
       setCounselingData(null);
       return;
     }
-
     const loadGuidance = async () => {
       setLoadingGuidance(true);
       try {
-        const result = await ResultScreenFactory.fetchGuidance(
-          selectedConditionValue,
-          catId
-        );
-
+        const result = await ResultScreenFactory.fetchGuidance(selectedConditionValue, catId);
         if (result.success) {
           setPreventionData(result.preventionData);
           setCounselingData(result.counselingData);
         } else {
           Alert.alert("Connection Error", "ไม่สามารถเชื่อมต่อ Server ได้");
         }
-      } catch (error) {
-        Alert.alert("Error", "Failed to load guidance");
-      } finally {
-        setLoadingGuidance(false);
-      }
+      } catch (error) { Alert.alert("Error", "Failed to load guidance"); }
+      finally { setLoadingGuidance(false); }
     };
-
     loadGuidance();
   }, [selectedConditionValue, catId]);
 
@@ -205,40 +201,49 @@ export default function ResultScreen({ onBack, onSave, route }) {
           <View style={styles.circleBg}>
             <View style={styles.circleProgress} /><Text style={styles.riskText}>{overallRisk}</Text>
           </View>
-          <Text style={styles.recommendText}>Closer monitoring recommended</Text>
+          <Text style={styles.recommendText}>Health Assessment Status</Text>
           <Text style={styles.subText}>Overall Health Risk</Text>
         </View>
 
-        {/* ===== [ADDED] Summary (ส่วนที่หายไป) ===== */}
+        {/* Summary */}
         <View style={styles.summary}>
           <Text style={styles.summaryTitle}>{summaryTitle}</Text>
           <Text style={styles.summaryDesc}>{summaryDesc}</Text>
         </View>
 
-        {/* ===== [ADDED] Risk Breakdown (ส่วนกราฟแท่งที่หายไป) ===== */}
+        {/* ===== Risk Breakdown (กราฟแท่ง) ===== */}
         <Text style={styles.sectionTitle}>Risk Breakdown</Text>
         {riskData.map((item, index) => (
           <View key={index} style={styles.riskItem}>
             <View style={styles.riskRow}>
               <Text style={styles.riskLabel}>{item.label}</Text>
-              <Text style={styles.riskValue}>{item.value}</Text>
+              {/* แสดงข้อความสถานะ */}
+              <Text style={[
+                styles.riskValue,
+                item.value === "No Data" && { color: '#999' } // สีเทาถ้าไม่มีข้อมูล
+              ]}>
+                {item.value}
+              </Text>
             </View>
+
             <View style={styles.riskBarBg}>
-              {item.value !== "No Risk" && (
-                <View style={[styles.riskBarFill, { width: `${item.score || 25}%` }]} />
-              )}
+              {/* กราฟแท่ง: ถ้า score=0 (No Data), width=0% (มองไม่เห็น) */}
+              <View
+                style={[
+                  styles.riskBarFill,
+                  { width: `${item.score}%` }
+                ]}
+              />
             </View>
           </View>
         ))}
-        {/* ======================================================= */}
+        {/* ==================================== */}
 
         <Text style={styles.sectionTitle}>Recommended Approach</Text>
 
-        {/* ===== CARD 1: Disease Prevention ===== */}
+        {/* Card 1: Disease Prevention */}
         <View style={[styles.card, { zIndex: 2000 }]}>
           <Text style={styles.cardTitle}>Disease Prevention</Text>
-
-          {/* Dropdown */}
           <View style={{ marginBottom: 15, zIndex: 3000 }}>
             <TouchableOpacity
               activeOpacity={0.8}
@@ -272,7 +277,6 @@ export default function ResultScreen({ onBack, onSave, route }) {
             )}
           </View>
 
-          {/* Content: Prevention */}
           {loadingGuidance ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color="#1abc9c" />
@@ -296,10 +300,9 @@ export default function ResultScreen({ onBack, onSave, route }) {
           )}
         </View>
 
-        {/* ===== CARD 2: Counseling ===== */}
+        {/* Card 2: Counseling */}
         <View style={[styles.card, { zIndex: 1000 }]}>
           <Text style={styles.cardTitle}>Counseling</Text>
-
           {loadingGuidance ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color="#1abc9c" />
@@ -324,7 +327,6 @@ export default function ResultScreen({ onBack, onSave, route }) {
 
       </ScrollView>
 
-      {/* Save Button */}
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.saveButtonText}>Save Assessment</Text>
       </TouchableOpacity>
