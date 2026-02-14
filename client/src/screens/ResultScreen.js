@@ -19,7 +19,9 @@ const DISEASE_OPTIONS = [
   { label: "โรคเบาหวาน", value: "Diabetes" },
 ];
 
-// ===== ค่าเริ่มต้น (Default Config: 0 / No Data) =====
+// ===== ค่าเริ่มต้น (Default Config) =====
+// กำหนดให้ Score = 0 และ Value = "No Data" ตามที่ต้องการ
+// ค่าเหล่านี้จะถูกแสดงตอนโหลดหน้าเว็บครั้งแรก หรือตอนรอข้อมูลจาก Server
 const INITIAL_RISK_DATA = [
   { label: "Kidney Disease", value: "No Data", score: 0 },
   { label: "Diabetes", value: "No Data", score: 0 },
@@ -56,13 +58,19 @@ const ResultScreenFactory = {
   // 1. Fetch Assessment
   async fetchAssessment(catId) {
     try {
-      // จำลอง Delay
+      // จำลอง Delay การเชื่อมต่อ
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // ✅ แก้ไข: ส่งค่า Default (0 / No Data) กลับไปแทนค่า Mockup เดิม
+      // ✅ ส่งค่า Default (No Data / 0) กลับไปก่อน
+      // เมื่อ Backend คำนวณเสร็จและส่งข้อมูลกลับมา จะมีหน้าตาประมาณนี้ (ตัวอย่าง):
+      // [
+      //   { label: "Kidney Disease", value: "Normal", score: 8 },  (<=10%)
+      //   { label: "Diabetes", value: "Low", score: 20 },          (>10%)
+      //   { label: "Urolithiasis", value: "High", score: 65 },     (>50%)
+      // ]
       return {
         success: true,
-        riskData: INITIAL_RISK_DATA,
+        riskData: INITIAL_RISK_DATA, // เริ่มต้นด้วยค่าว่าง
         overallRisk: "Waiting for results...",
         summaryTitle: "Analyzing Data",
         summaryDesc: "Please wait while we process the health assessment...",
@@ -124,7 +132,7 @@ export default function ResultScreen({ onBack, onSave, route }) {
   const [preventionData, setPreventionData] = useState(null);
   const [counselingData, setCounselingData] = useState(null);
 
-  // API Data State: เริ่มต้นด้วยค่าว่าง (0)
+  // API Data State: เริ่มต้นด้วย INITIAL_RISK_DATA (ค่า 0/No Data)
   const [riskData, setRiskData] = useState(INITIAL_RISK_DATA);
   const [overallRisk, setOverallRisk] = useState("Unknown");
   const [summaryTitle, setSummaryTitle] = useState("");
@@ -137,6 +145,8 @@ export default function ResultScreen({ onBack, onSave, route }) {
     const loadInitialData = async () => {
       setLoadingData(true);
       try {
+        // ดึงข้อมูล (ปัจจุบันจะได้ค่า Default กลับมา)
+        // เมื่อเชื่อมต่อ Backend จริง ข้อมูลใหม่จะมาแทนที่ INITIAL_RISK_DATA ตรงนี้
         const result = await ResultScreenFactory.fetchAssessment(catId);
         if (result.success) {
           setRiskData(result.riskData);
@@ -150,7 +160,7 @@ export default function ResultScreen({ onBack, onSave, route }) {
     loadInitialData();
   }, [catId]);
 
-  // Fetch Guidance
+  // Fetch Guidance Logic
   useEffect(() => {
     if (!selectedConditionValue) {
       setPreventionData(null);
@@ -217,17 +227,26 @@ export default function ResultScreen({ onBack, onSave, route }) {
           <View key={index} style={styles.riskItem}>
             <View style={styles.riskRow}>
               <Text style={styles.riskLabel}>{item.label}</Text>
-              {/* แสดงข้อความสถานะ */}
+
+              {/* แสดงสถานะความเสี่ยง (Value) 
+                  - ถ้ายังไม่มีข้อมูลจะแสดง "No Data" (จาก Default)
+                  - ถ้ามีข้อมูลจะแสดง: Normal, Low, Moderate, High, Extreme (จาก Backend)
+              */}
               <Text style={[
                 styles.riskValue,
-                item.value === "No Data" && { color: '#999' } // สีเทาถ้าไม่มีข้อมูล
+                // สามารถเพิ่ม Logic เปลี่ยนสีตัวหนังสือตามค่า Status ได้ที่นี่ (Optional)
+                item.value === "No Data" && { color: '#999' }
               ]}>
                 {item.value}
               </Text>
             </View>
 
             <View style={styles.riskBarBg}>
-              {/* กราฟแท่ง: ถ้า score=0 (No Data), width=0% (มองไม่เห็น) */}
+              {/* กราฟแท่ง (Bar Fill)
+                  - ความกว้างขึ้นอยู่กับ item.score (0-100) ที่ส่งมาจาก Backend
+                  - ถ้า score = 0 (Default), ความกว้างจะเป็น 0% (ไม่เห็นแถบสี)
+                  - เมื่อ Backend ส่งค่ามา (เช่น 45), กราฟจะยาว 45%
+              */}
               <View
                 style={[
                   styles.riskBarFill,
