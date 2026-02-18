@@ -5,6 +5,7 @@ import SignUpScreen from './src/screens/SignUpScreen';
 import ProfileScreen from './src/screens/profileScreen';
 import CatProfile from './src/screens/catprofile';
 import UserInfoScreen from './src/screens/UserInfoScreen';
+import CommunityProfile from './src/screens/CommunityProfile';
 import supabase from './src/screens/config/supabaseClient';
 import Dashboard from './src/screens/Dashbord';
 
@@ -151,7 +152,15 @@ export default function App() {
         catId={catId}
         onLogout={() => supabase.auth.signOut()}
         onMissingProfile={() => setAuthScreen('Profile')}
-        onBack={() => setAuthScreen('Home')} // ✅ Back button support
+        onBack={() => setAuthScreen('Home')}
+      />;
+    }
+
+    if (authScreen === 'CommunityProfile') {
+      return <CommunityProfile
+        session={session}
+        onBack={() => setAuthScreen('MainTabNavigator')}
+        onNavigate={(screen) => setAuthScreen(screen)}
       />;
     }
 

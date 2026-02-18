@@ -119,13 +119,16 @@ export default function CommunityScreen({ onBack, session, onNavigate }) {
 
     try {
       const fileName = `${session.user.id}_${Date.now()}.jpg`;
+
+      // ใช้ ArrayBuffer แทน Blob เพื่อความเสถียรใน React Native (แก้ปัญหา 0 bytes)
       const response = await fetch(uri);
-      const blob = await response.blob();
+      const arrayBuffer = await response.arrayBuffer();
 
       const { data, error: uploadError } = await supabase.storage
         .from('posts')
-        .upload(fileName, blob, {
-          contentType: 'image/jpeg'
+        .upload(fileName, arrayBuffer, {
+          contentType: 'image/jpeg',
+          upsert: true
         });
 
       if (uploadError) throw uploadError;
@@ -329,7 +332,8 @@ export default function CommunityScreen({ onBack, session, onNavigate }) {
       <FeedHeader
         title="Community"
         onBack={onBack}
-        onProfile={() => onNavigate && onNavigate("UserInfo")}
+        onProfile={() => onNavigate && onNavigate("CommunityProfile")}
+        onSettings={() => onNavigate && onNavigate("UserInfo")}
       />
 
       {/* 🔀 Pill Tab Bar */}

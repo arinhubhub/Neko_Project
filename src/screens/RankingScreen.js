@@ -26,10 +26,18 @@ const { width } = Dimensions.get("window");
 const FRIENDS_KEY = "neko_friends_list";
 
 export default function RankingScreen({ session, onBack }) {
+  // v2.1 UI Update Force Reload
+
   const [myProfile, setMyProfile] = useState(null);
   const [myScore, setMyScore] = useState(0);
   const [friends, setFriends] = useState([]); // { id, name, score }
   const [loading, setLoading] = useState(true);
+  const [hasCheckedInToday, setHasCheckedInToday] = useState(false);
+  const [checkinHistory, setCheckinHistory] = useState([]); // List of dates checked in this week
+
+  // Global Ranking State
+  const [viewMode, setViewMode] = useState("friends"); // 'friends' | 'global'
+  const [globalRankings, setGlobalRankings] = useState([]);
 
   // Add Friend Modal
   const [showAddFriend, setShowAddFriend] = useState(false);
@@ -53,12 +61,31 @@ export default function RankingScreen({ session, onBack }) {
   const loadAll = async () => {
     setLoading(true);
     try {
-      await Promise.all([loadMyProfile(), loadFriends()]);
+      await loadMyProfile();
+      await checkTodayStatus();
+      await loadPendingRequests(); // Always load pending requests
+      if (viewMode === "friends") {
+        await loadFriends();
+      } else {
+        await loadGlobalRankings();
+      }
     } catch (e) {
       console.log("loadAll error:", e);
     }
     setLoading(false);
   };
+
+  // Reload when changing tabs
+  useEffect(() => {
+    // Reload when changing view mode
+    if (viewMode === 'friends') {
+      loadFriends();
+    } else {
+      loadGlobalRankings();
+    }
+    // Always keep pending requests fresh
+    loadPendingRequests();
+  }, [viewMode, session]); // Dependency on session ensures reload on logout/login
 
   const loadMyProfile = async () => {
     try {
@@ -107,68 +134,207 @@ export default function RankingScreen({ session, onBack }) {
 
   const [pendingRequests, setPendingRequests] = useState([]);
 
+  const loadPendingRequests = async () => {
+    try {
+      if (!session?.user?.id) return;
+
+      // 1. Fetch pending friends (just user_ids) to avoid ambiguous embedding
+      const { data: incomingRows, error: incomingError } = await supabase
+        .from("friends")
+        .select("user_id")
+        .eq("friend_id", session.user.id)
+        .eq("status", "pending");
+
+      if (incomingError) {
+        console.log("Error fetching incoming:", incomingError);
+        throw incomingError;
+      }
+
+      console.log("Raw Incoming Rows:", incomingRows);
+
+      if (incomingRows && incomingRows.length > 0) {
+        // 2. Fetch profiles for these users
+        const userIds = incomingRows.map(r => r.user_id);
+        const { data: profiles, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, name")
+          .in("id", userIds);
+
+        if (profileError) {
+          console.log("Error fetching pending profiles:", profileError);
+          // If profile fetch fails, we still show the request but with "Unknown"
+        }
+
+        const profileMap = {};
+        if (profiles) {
+          profiles.forEach(p => {
+            profileMap[p.id] = p;
+          });
+        }
+
+        const pending = incomingRows.map(req => {
+          const profile = profileMap[req.user_id];
+          return {
+            id: req.user_id,
+            name: profile?.name || "Unknown User",
+            avatar_url: profile?.avatar_url || null,
+            isProfileMissing: !profile
+          };
+        });
+        setPendingRequests(pending);
+      } else {
+        setPendingRequests([]);
+      }
+    } catch (e) {
+      console.log("Error loading pending requests:", e);
+    }
+  }
+
   const loadFriends = async () => {
     try {
       if (!session?.user?.id) return;
 
-      // 1. Get friend IDs (only accepted)
-      const { data: friendRows, error: friendError } = await supabase
+      console.log("Loading friends for:", session.user.id);
+
+      // Query 1: Friends I added (Me -> Friend)
+      const { data: q1, error: e1 } = await supabase
         .from("friends")
-        .select("friend_id")
+        .select("friend_id") // We want the other person's ID (friend_id)
         .eq("user_id", session.user.id)
         .eq("status", "accepted");
 
-      if (friendError) throw friendError;
+      if (e1) console.log("Error Q1 (Me->Friend):", e1);
 
-      const friendIds = friendRows ? friendRows.map((f) => f.friend_id) : [];
+      // Query 2: Friends who added me (Friend -> Me)
+      const { data: q2, error: e2 } = await supabase
+        .from("friends")
+        .select("user_id") // We want the other person's ID (user_id)
+        .eq("friend_id", session.user.id)
+        .eq("status", "accepted");
 
-      // 2. Fetch profiles and calculate scores for accepted friends
+      if (e2) console.log("Error Q2 (Friend->Me):", e2);
+
+      const ids = new Set();
+      if (q1) q1.forEach(row => ids.add(row.friend_id));
+      if (q2) q2.forEach(row => ids.add(row.user_id));
+
+      const friendIds = Array.from(ids);
+      console.log("Combined Friend IDs:", friendIds);
+
+      // 2. Fetch profiles if we have IDs
+      // 2. Fetch profiles if we have IDs
       if (friendIds.length > 0) {
-        const { data: profiles, error: profileError } = await supabase
+        let profiles = null;
+        let fetchError = null;
+
+        // Try getting score column first (Optimized)
+        const { data: profilesWithScore, error: scoreError } = await supabase
           .from("profiles")
-          .select("id, name")
+          .select("id, name, score")
           .in("id", friendIds);
 
-        if (profileError) throw profileError;
+        if (!scoreError) {
+          profiles = profilesWithScore;
+        } else {
+          console.log("Profile Score Column Missing?", scoreError.message);
+          // Fallback: Fetch without score
+          const { data: profilesBasic, error: basicError } = await supabase
+            .from("profiles")
+            .select("id, name")
+            .in("id", friendIds);
+
+          if (basicError) fetchError = basicError;
+          else profiles = profilesBasic;
+        }
+
+        if (fetchError) {
+          console.log("Profile Error:", fetchError);
+          // Alert.alert("Debug", "Failed to load profiles: " + fetchError.message); 
+        }
 
         if (profiles) {
           const withScores = await Promise.all(
             profiles.map(async (f) => ({
               ...f,
-              score: await calcScore(f.id),
+              // Use stored score if available, else calc
+              score: f.score !== undefined ? f.score : await calcScore(f.id),
               status: 'accepted'
             }))
           );
           setFriends(withScores);
+        } else {
+          setFriends([]);
         }
-      } else {
-        setFriends([]);
+      }
+    } catch (e) {
+      console.log("Error loading friends:", e);
+      Alert.alert("Error", "Load Friends Failed: " + e.message);
+    }
+  };
+
+  const loadGlobalRankings = async () => {
+    try {
+      if (!session?.user?.id) return;
+
+      // 1. Fetch profiles (limit 20 for performance)
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("id, name")
+        .limit(20);
+
+      if (error) throw error;
+
+      // 2. Fetch my relationships
+      const { data: relationships, error: relError } = await supabase
+        .from("friends")
+        .select("friend_id, status")
+        .eq("user_id", session.user.id);
+
+      if (relError) console.log("Rel Error:", relError);
+
+      const relMap = {};
+      if (relationships) {
+        relationships.forEach(r => {
+          relMap[r.friend_id] = r.status;
+        });
       }
 
-      // 3. Fetch Pending Requests (where current user is the friend_id)
-      const { data: incoming, error: incomingError } = await supabase
+      // 3. Include incoming requests check (am I the friend_id?)
+      const { data: incoming } = await supabase
         .from("friends")
-        .select(`
-          user_id,
-          profiles:user_id (id, name)
-        `)
+        .select("user_id, status")
         .eq("friend_id", session.user.id)
         .eq("status", "pending");
 
-      if (incomingError) throw incomingError;
-
       if (incoming) {
-        const pending = incoming
-          .filter(req => req.profiles) // Safety check: ensure profile exists
-          .map(req => ({
-            id: req.profiles.id,
-            name: req.profiles.name || "Neko User",
-          }));
-        setPendingRequests(pending);
+        incoming.forEach(r => {
+          relMap[r.user_id] = 'incoming'; // Mark as incoming request
+        });
       }
 
+      // 4. Calculate scores & map status
+      const globalData = await Promise.all(
+        profiles.map(async (p) => {
+          const score = await calcScore(p.id);
+          let status = 'none';
+          if (p.id === session.user.id) status = 'me';
+          else if (relMap[p.id]) status = relMap[p.id];
+
+          return {
+            ...p,
+            score,
+            status, // 'accepted', 'pending', 'incoming', 'none', 'me'
+            isMe: p.id === session.user.id
+          };
+        })
+      );
+
+      // Sort by score
+      globalData.sort((a, b) => b.score - a.score);
+      setGlobalRankings(globalData);
+
     } catch (e) {
-      console.log("Error loading friends:", e);
+      console.log("Global ranking error:", e);
     }
   };
 
@@ -178,20 +344,28 @@ export default function RankingScreen({ session, onBack }) {
     let score = 0;
     try {
       // 1) Get cats owned by this user
-      const { data: cats } = await supabase
-        .from("cats")
-        .select("id")
-        .eq("owner_id", userId);
+      let catIds = [];
+      try {
+        const { data: cats, error: catError } = await supabase
+          .from("cats")
+          .select("id")
+          .eq("owner_id", userId);
 
-      const catIds = cats ? cats.map((c) => c.id) : [];
+        if (catError) throw catError;
+        catIds = cats ? cats.map((c) => c.id) : [];
 
-      // 2) Count daily_logs (1pt each)
-      if (catIds.length > 0) {
-        const { count: logCount } = await supabase
-          .from("daily_logs")
-          .select("id", { count: "exact", head: true })
-          .in("cat_id", catIds);
-        score += (logCount || 0) * 1;
+        // 2) Count daily_logs (1pt each)
+        if (catIds.length > 0) {
+          const { count: logCount, error: logError } = await supabase
+            .from("daily_logs")
+            .select("id", { count: "exact", head: true })
+            .in("cat_id", catIds);
+
+          if (logError) throw logError;
+          score += (logCount || 0) * 1;
+        }
+      } catch (catLogEx) {
+        console.log("CalcScore (Cats/Logs) Error:", catLogEx);
       }
 
       // 3) Count assessments (2pt each) — ถ้ามี table
@@ -215,26 +389,118 @@ export default function RankingScreen({ session, onBack }) {
     } catch (e) {
       console.log("Score calc error:", e);
     }
+
+    // 5) Count daily_checkins (1pt each)
+    try {
+      const { count: checkinCount } = await supabase
+        .from("daily_checkins")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId);
+      score += (checkinCount || 0) * 1;
+    } catch (e) {
+      console.log("Checkin score error (table might not exist yet):", e);
+    }
+
     return score;
   };
 
+  const checkTodayStatus = async () => {
+    if (!session?.user?.id) return;
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from("daily_checkins")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .eq("checkin_date", today);
+
+      if (data && data.length > 0) {
+        setHasCheckedInToday(true);
+      }
+
+      // Load last 7 days for the UI grid
+      const { data: history } = await supabase
+        .from("daily_checkins")
+        .select("checkin_date")
+        .eq("user_id", session.user.id)
+        .order("checkin_date", { ascending: false })
+        .limit(7);
+
+      if (history) {
+        setCheckinHistory(history.map(h => h.checkin_date));
+      }
+    } catch (e) {
+      console.log("Check status error:", e);
+    }
+  };
+
+  const handleCheckIn = async () => {
+    if (hasCheckedInToday || !session?.user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from("daily_checkins")
+        .insert({
+          user_id: session.user.id,
+          checkin_date: new Date().toISOString().split('T')[0]
+        });
+
+      if (error) throw error;
+
+      setHasCheckedInToday(true);
+
+      // OPTIONAL: Update permanent score column if exists
+      // We try to run a simple RPC or direct update. 
+      // Since we don't have an RPC, let's try direct update (fetch + 1)
+      try {
+        const { data: currentProfile } = await supabase
+          .from("profiles")
+          .select("score")
+          .eq("id", session.user.id)
+          .single();
+
+        if (currentProfile) {
+          const newScore = (currentProfile.score || 0) + 1;
+          await supabase
+            .from("profiles")
+            .update({ score: newScore })
+            .eq("id", session.user.id);
+        }
+      } catch (scoreEx) {
+        console.log("Failed to update permanent score column:", scoreEx);
+      }
+
+      Alert.alert("สำเร็จ! 🎉", "คุณได้รับ 1 คะแนนจากการเช็คอินวันนี้");
+      loadAll(); // Refresh score and ranking
+    } catch (e) {
+      console.log("Check-in error:", e);
+      Alert.alert("Error", "ไม่สามารถเช็คอินได้ในขณะนี้ (กรุณาตรวจสอบว่ามีตาราง daily_checkins หรือยัง)");
+    }
+  };
+
   // ─── Combined Ranking ───
+  // ─── Ranking Display Logic ───
   const getRanking = () => {
+    if (viewMode === 'global') {
+      return globalRankings;
+    }
+
+    // Friends Mode
     const all = [];
     if (myProfile) {
-      all.push({ ...myProfile, score: myScore, isMe: true });
+      all.push({ ...myProfile, score: myScore, isMe: true, status: 'me' });
     } else if (session?.user) {
-      // Emergency fallback if profile hasn't loaded yet
       all.push({
         id: session.user.id,
         name: session.user.email?.split("@")[0] || "You",
         score: myScore,
-        isMe: true
+        isMe: true,
+        status: 'me'
       });
     }
 
     friends.forEach((f) => {
-      // Avoid duplicates if friend happens to be the same ID
+      // Avoid duplicates
       if (myProfile && f.id === myProfile.id) return;
       all.push({ ...f, isMe: false });
     });
@@ -286,7 +552,7 @@ export default function RankingScreen({ session, onBack }) {
 
   const acceptFriend = async (requestorId) => {
     try {
-      // 1. Update the incoming request to 'accepted'
+      // 1. Update the incoming request (Friend -> Me) to 'accepted'
       const { error: updateError } = await supabase
         .from("friends")
         .update({ status: "accepted" })
@@ -294,23 +560,43 @@ export default function RankingScreen({ session, onBack }) {
 
       if (updateError) throw updateError;
 
-      // 2. Create the reciprocal friendship record (Self -> Requestor)
-      // Use upsert to handle case where user might have already sent a request back
-      const { error: insertError } = await supabase
+      // 2. Ensure reciprocal relationship (Me -> Friend) exists and is 'accepted'
+      // Check if it exists first
+      const { data: existing, error: checkError } = await supabase
         .from("friends")
-        .upsert({
-          user_id: session.user.id,
-          friend_id: requestorId,
-          status: "accepted"
-        });
+        .select("id")
+        .match({ user_id: session.user.id, friend_id: requestorId })
+        .maybeSingle();
 
-      if (insertError) throw insertError;
+      if (checkError) {
+        console.log("Check reciprocal error:", checkError);
+        // Continue anyway, try insert
+      }
+
+      if (existing) {
+        // Update existing to accepted
+        const { error: revUpdateError } = await supabase
+          .from("friends")
+          .update({ status: "accepted" })
+          .eq("id", existing.id);
+        if (revUpdateError) throw revUpdateError;
+      } else {
+        // Insert new 'accepted' record
+        const { error: insertError } = await supabase
+          .from("friends")
+          .insert({
+            user_id: session.user.id,
+            friend_id: requestorId,
+            status: "accepted"
+          });
+        if (insertError) throw insertError;
+      }
 
       Alert.alert("Success! 🎉", "You are now friends!");
-      loadFriends(); // Refresh lists
+      loadAll(); // Refresh everything (pending, friends list, global status)
     } catch (e) {
       console.log("Accept error:", e);
-      Alert.alert("Error", "Could not accept request.");
+      Alert.alert("Error", `Could not accept request: ${e.message || "Unknown"}`);
     }
   };
 
@@ -322,7 +608,14 @@ export default function RankingScreen({ session, onBack }) {
         .match({ user_id: requestorId, friend_id: session.user.id });
 
       if (error) throw error;
+
+      // Update local state immediately for responsiveness
       setPendingRequests(prev => prev.filter(r => r.id !== requestorId));
+
+      // Sync global status in background
+      if (viewMode === 'global') {
+        loadGlobalRankings();
+      }
     } catch (e) {
       console.log("Reject error:", e);
     }
@@ -354,9 +647,16 @@ export default function RankingScreen({ session, onBack }) {
       setShowAddFriend(false);
       setSearchText("");
       setSearchResults([]);
+
+      // Refresh data to update UI button state
+      if (viewMode === 'global') {
+        loadGlobalRankings();
+      } else {
+        loadFriends();
+      }
     } catch (e) {
       console.log("Add friend error:", e);
-      Alert.alert("Error", "Could not send request.");
+      Alert.alert("Error", `Could not send request: ${e.message || "Unknown error"}`);
     }
   };
 
@@ -366,6 +666,39 @@ export default function RankingScreen({ session, onBack }) {
     if (rank === 2) return <Text style={styles.rankMedal}>🥈</Text>;
     if (rank === 3) return <Text style={styles.rankMedal}>🥉</Text>;
     return <Text style={styles.rankNumber}>#{rank}</Text>;
+  };
+
+  const renderActionBtn = (item) => {
+    if (item.isMe || item.status === 'accepted') return null;
+
+    if (item.status === 'pending') {
+      return (
+        <View style={styles.statusBadge}>
+          <Text style={styles.statusText}>Requested</Text>
+        </View>
+      );
+    }
+
+    if (item.status === 'incoming') {
+      return (
+        <TouchableOpacity
+          style={styles.acceptBtn}
+          onPress={() => acceptFriend(item.id)}
+        >
+          <Text style={styles.acceptBtnText}>Accept</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <TouchableOpacity
+        style={styles.addFriendMiniBtn}
+        onPress={() => addFriend(item)}
+      >
+        <Ionicons name="person-add" size={16} color="#FFF" />
+        <Text style={styles.addFriendMiniText}>Add</Text>
+      </TouchableOpacity>
+    );
   };
 
   const ranking = getRanking();
@@ -408,6 +741,77 @@ export default function RankingScreen({ session, onBack }) {
             </View>
           ) : (
             <View style={styles.listContent}>
+
+
+              {/* Toggle Switch */}
+              <View style={styles.toggleContainer}>
+                <TouchableOpacity
+                  style={[styles.toggleBtn, viewMode === 'friends' && styles.toggleBtnActive]}
+                  onPress={() => setViewMode('friends')}
+                >
+                  <Text style={[styles.toggleText, viewMode === 'friends' && styles.toggleTextActive]}>Friends</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.toggleBtn, viewMode === 'global' && styles.toggleBtnActive]}
+                  onPress={() => setViewMode('global')}
+                >
+                  <Text style={[styles.toggleText, viewMode === 'global' && styles.toggleTextActive]}>Global</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Daily Check-in Card (Shopee Style) */}
+              <View style={styles.checkInCard}>
+                <View style={styles.checkInHeader}>
+                  <View>
+                    <Text style={styles.checkInTitle}>Daily Check-in</Text>
+                    <Text style={styles.checkInSub}>Check-in daily to earn +1 pt</Text>
+                  </View>
+                  <Ionicons name="calendar" size={24} color="#26A69A" />
+                </View>
+
+                <View style={styles.daysGrid}>
+                  {[...Array(7)].map((_, i) => {
+                    const date = new Date();
+                    date.setDate(date.getDate() + i); // i=0 is today, i=1 is tomorrow...
+                    const dateStr = date.toISOString().split('T')[0];
+                    const isToday = i === 0;
+                    const isDone = checkinHistory.includes(dateStr) || (isToday && hasCheckedInToday);
+
+                    return (
+                      <View key={i} style={styles.dayItem}>
+                        <View style={[
+                          styles.dayCircle,
+                          isDone && styles.dayCircleDone,
+                          isToday && !isDone && styles.dayCircleToday
+                        ]}>
+                          {isDone ? (
+                            <Ionicons name="checkmark-sharp" size={16} color="#FFF" />
+                          ) : (
+                            <Text style={[styles.dayPoint, isToday && { color: '#26A69A' }]}>+1</Text>
+                          )}
+                        </View>
+                        <Text style={styles.dayLabel}>{isToday ? "Today" : `Day ${i + 1}`}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.checkInBtn, hasCheckedInToday && styles.checkInBtnDisabled]}
+                  onPress={handleCheckIn}
+                  disabled={hasCheckedInToday}
+                >
+                  <LinearGradient
+                    colors={hasCheckedInToday ? ["#CFD8DC", "#B0BEC5"] : ["#4DB6AC", "#26A69A"]}
+                    style={styles.checkInBtnGradient}
+                  >
+                    <Text style={styles.checkInBtnText}>
+                      {hasCheckedInToday ? "Already Checked In" : "Check-in Now"}
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+
               {/* My Profile Card */}
               {myProfile && (
                 <LinearGradient
@@ -451,30 +855,38 @@ export default function RankingScreen({ session, onBack }) {
                     </Text>
                   </View>
                   {pendingRequests.map((req) => (
-                    <View key={req.id} style={styles.rankCard}>
-                      <Image
-                        source={{ uri: "https://placekitten.com/40/40" }}
-                        style={styles.rankAvatar}
-                      />
-                      <View style={styles.rankInfo}>
-                        <Text style={styles.rankName}>{req.name}</Text>
-                        <Text style={{ color: "#666", fontSize: 12 }}>want to be friends</Text>
+                    <LinearGradient
+                      key={req.id}
+                      colors={["#FFF3E0", "#FFFFFF"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.requestCard}
+                    >
+                      <View style={styles.requestInfo}>
+                        <Image
+                          source={{ uri: "https://placekitten.com/40/40" }}
+                          style={styles.requestAvatar}
+                        />
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.requestName}>{req.name}</Text>
+                          <Text style={styles.requestSub}>wants to be friends</Text>
+                        </View>
                       </View>
-                      <View style={{ flexDirection: 'row' }}>
+                      <View style={styles.requestActions}>
                         <TouchableOpacity
                           onPress={() => acceptFriend(req.id)}
-                          style={[styles.actionBtn, { backgroundColor: '#4DB6AC', marginRight: 8, padding: 6, borderRadius: 6 }]}
+                          style={styles.reqAcceptBtn}
                         >
-                          <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>Accept</Text>
+                          <Text style={styles.reqAcceptText}>Accept</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                           onPress={() => rejectFriend(req.id)}
-                          style={[styles.actionBtn, { backgroundColor: '#FF8A65', padding: 6, borderRadius: 6 }]}
+                          style={styles.reqRejectBtn}
                         >
-                          <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>Reject</Text>
+                          <Text style={styles.reqRejectText}>Reject</Text>
                         </TouchableOpacity>
                       </View>
-                    </View>
+                    </LinearGradient>
                   ))}
                 </View>
               )}
@@ -483,7 +895,7 @@ export default function RankingScreen({ session, onBack }) {
               <View style={styles.sectionDivider}>
                 <Ionicons name="people" size={16} color="#90A4AE" />
                 <Text style={styles.sectionTitle}>
-                  Leaderboard ({ranking.length})
+                  {viewMode === 'global' ? 'Global Leaderboard' : 'Friends Leaderboard'} ({ranking.length})
                 </Text>
               </View>
 
@@ -517,6 +929,9 @@ export default function RankingScreen({ session, onBack }) {
                         <Text style={styles.rankScore}>{item.score} pts</Text>
                       </View>
                     </View>
+
+                    {/* Action Button for Global Mode or Search Context */}
+                    {renderActionBtn(item)}
                     {rank <= 3 && (
                       <View
                         style={[
@@ -1100,5 +1515,232 @@ const styles = StyleSheet.create({
   },
   resultAddTextDone: {
     color: "#4DB6AC",
+  },
+
+  // ─── Check-in Card ───
+  checkInCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 20,
+    marginTop: 8,
+    marginBottom: 16,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  checkInHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  checkInTitle: {
+    fontSize: 18,
+    fontFamily: "Inter-Bold",
+    color: "#37474F",
+  },
+  checkInSub: {
+    fontSize: 12,
+    fontFamily: "Inter-Regular",
+    color: "#90A4AE",
+    marginTop: 2,
+  },
+  daysGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  dayItem: {
+    alignItems: "center",
+  },
+  dayCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#F1F8F7",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: "#E0F2F1",
+  },
+  dayCircleDone: {
+    backgroundColor: "#26A69A",
+    borderColor: "#26A69A",
+  },
+  dayCircleToday: {
+    borderColor: "#26A69A",
+    borderWidth: 2,
+  },
+  dayPoint: {
+    fontSize: 10,
+    fontFamily: "Inter-Bold",
+    color: "#90A4AE",
+  },
+  dayLabel: {
+    fontSize: 10,
+    fontFamily: "Inter-Medium",
+    color: "#90A4AE",
+  },
+  checkInBtn: {
+    width: "100%",
+    height: 48,
+    borderRadius: 14,
+    overflow: "hidden",
+  },
+  checkInBtnGradient: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  checkInBtnText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontFamily: "Inter-Bold",
+  },
+  checkInBtnDisabled: {
+    opacity: 0.8,
+  },
+
+  // ─── Toggle Switch Styles ───
+  toggleContainer: {
+    flexDirection: "row",
+    backgroundColor: "#ECEFF1",
+    borderRadius: 20,
+    padding: 4,
+    marginBottom: 16,
+  },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 16,
+    alignItems: "center",
+  },
+  toggleBtnActive: {
+    backgroundColor: "#FFFFFF",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  toggleText: {
+    fontSize: 14,
+    fontFamily: "Inter-Medium",
+    color: "#90A4AE",
+  },
+  toggleTextActive: {
+    color: "#26A69A",
+    fontFamily: "Inter-Bold",
+  },
+
+
+
+  // ─── Friend Requests Styles ───
+  requestCard: {
+    padding: 12,
+    borderRadius: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#FFCCBC",
+    elevation: 2,
+    shadowColor: "#FF7043",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  requestInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+    gap: 10,
+  },
+  requestAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#FFE0B2",
+  },
+  requestName: {
+    fontSize: 14,
+    fontFamily: "Inter-SemiBold",
+    color: "#BF360C",
+  },
+  requestSub: {
+    fontSize: 11,
+    fontFamily: "Inter-Regular",
+    color: "#E64A19",
+  },
+  requestActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  reqAcceptBtn: {
+    flex: 1,
+    backgroundColor: "#4DB6AC",
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  reqAcceptText: {
+    color: "#FFF",
+    fontSize: 12,
+    fontFamily: "Inter-Bold",
+  },
+  reqRejectBtn: {
+    flex: 1,
+    backgroundColor: "#FFAB91",
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  reqRejectText: {
+    color: "#D84315",
+    fontSize: 12,
+    fontFamily: "Inter-Bold",
+  },
+
+  // ─── Button Styles ───
+  addFriendMiniBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#26A69A",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 4,
+    elevation: 2,
+  },
+  addFriendMiniText: {
+    color: "#FFF",
+    fontSize: 11,
+    fontFamily: "Inter-SemiBold",
+  },
+  statusBadge: {
+    backgroundColor: "#ECEFF1",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#CFD8DC",
+  },
+  statusText: {
+    fontSize: 10,
+    fontFamily: "Inter-Medium",
+    color: "#78909C",
+  },
+  acceptBtn: {
+    backgroundColor: "#4DB6AC",
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  acceptBtnText: {
+    color: "#FFF",
+    fontSize: 12,
+    fontFamily: "Inter-Bold",
   },
 });
