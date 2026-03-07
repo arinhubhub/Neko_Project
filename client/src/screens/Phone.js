@@ -26,11 +26,18 @@ import { WebView } from 'react-native-webview';
 const { width } = Dimensions.get("window");
 
 // 🚨 URL ของเซิร์ฟเวอร์สตรีมภาพ (ตรวจสอบ IP ให้ตรงกับคอมพิวเตอร์ของคุณ)
+<<<<<<< HEAD
 const VIDEO_STREAM_URL = 'http://192.168.1.100:5000/api/video_feed_raw?fps=15&quality=62&width=960';
 const VIDEO_SERVER_BASE = VIDEO_STREAM_URL.split('/api')[0];
 
 // 🚨 ประกาศตัวแปรลิงก์กล้อง RTSP ที่นี่ (เพื่อเอาไปบันทึกลง Database)
 const CAMERA_RTSP_URL = "rtsp://testt1:1234test@192.168.1.102:554/stream2"
+=======
+const VIDEO_STREAM_URL = 'http://192.168.1.131:5000/api/video_feed';
+
+// 🚨 ประกาศตัวแปรลิงก์กล้อง RTSP ที่นี่ (เพื่อเอาไปบันทึกลง Database)
+const CAMERA_RTSP_URL = 'rtsp://testt1:1234test@192.168.1.140:554/stream2';
+>>>>>>> origin/main
 
 const BRANDS = [
     { id: "tapo", name: "TP-Link Tapo", icon: "link-variant" },

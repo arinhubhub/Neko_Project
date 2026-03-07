@@ -1,16 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Switch, ScrollView, SafeAreaView, Alert } from 'react-native';
 import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import supabase from './config/supabaseClient'; // Adjusted path to existing client
 
 export default function SettingScreen({ session, onNavigate, onLogout }) {
     const [userData, setUserData] = useState(null);
     const [userCats, setUserCats] = useState([]);
 
-    // Switch states (mock)
+    // Switch states
     const [notificationEnabled, setNotificationEnabled] = useState(true);
     const [webcamEnabled, setWebcamEnabled] = useState(true);
     const [privacyEnabled, setPrivacyEnabled] = useState(true);
+    const [phoneCameraEnabled, setPhoneCameraEnabled] = useState(true);
+
+    // Load phone camera toggle from storage
+    useEffect(() => {
+        AsyncStorage.getItem('phone_camera_enabled').then(val => {
+            if (val !== null) setPhoneCameraEnabled(val === 'true');
+        });
+    }, []);
+
+    const handlePhoneCameraToggle = async (value) => {
+        setPhoneCameraEnabled(value);
+        await AsyncStorage.setItem('phone_camera_enabled', String(value));
+    };
 
     useEffect(() => {
         if (session) {
@@ -162,17 +176,22 @@ export default function SettingScreen({ session, onNavigate, onLogout }) {
                         />
                     </View>
 
-                    {/* Webcam & Devices */}
-                    <TouchableOpacity style={styles.menuItem} onPress={() => onNavigate('Phone')}>
+                    {/* Phone Camera */}
+                    <View style={styles.menuItem}>
                         <View style={styles.menuIconContainer}>
                             <Feather name="camera" size={24} color="#004D40" />
                         </View>
                         <View style={styles.menuTextContainer}>
-                            <Text style={styles.menuTitle}>Webcam & Devices</Text>
-                            <Text style={styles.menuSubtitle}>Manage smart monitors & cameras</Text>
+                            <Text style={styles.menuTitle}>Phone Camera</Text>
+                            <Text style={styles.menuSubtitle}>{phoneCameraEnabled ? 'Camera is on — can take photos' : 'Camera is off — cannot take photos'}</Text>
                         </View>
-                        <Ionicons name="chevron-forward" size={24} color="#666" />
-                    </TouchableOpacity>
+                        <Switch
+                            value={phoneCameraEnabled}
+                            onValueChange={handlePhoneCameraToggle}
+                            trackColor={{ false: "#767577", true: "#004D40" }}
+                            thumbColor={phoneCameraEnabled ? "#f4f3f4" : "#f4f3f4"}
+                        />
+                    </View>
 
                     {/* Data Export & Privacy */}
                     <View style={styles.menuItem}>

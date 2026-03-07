@@ -34,6 +34,7 @@ const { width } = Dimensions.get('window');
 
 const HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 // 🚨 เปลี่ยน 192.168.1.159 เป็น IP จริงของคอมพิวเตอร์คุณเสมอ
+<<<<<<< HEAD
 const VIDEO_STREAM_URL = 'http://192.168.1.100:5000/api/video_feed_raw';
 const VIDEO_STREAM_QUERY = 'fps=15&quality=62&width=960';
 const VIDEO_SERVER_BASE = VIDEO_STREAM_URL.split('/api')[0];
@@ -49,6 +50,9 @@ const isDemoLikeSource = (source = '') => {
     s.includes('/storage/v1/object/public/')
   );
 };
+=======
+const VIDEO_STREAM_URL = 'http://192.168.1.131:5000/api/video_feed';
+>>>>>>> origin/main
 
 // Create animated components
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
@@ -101,10 +105,18 @@ export default function CameraScreen({ onNavigate, session }) {
   const [quickSummary, setQuickSummary] = useState({ eventsToday: 0, lastDetected: '--' });
   // ดึง stream_source จาก DB
   const [dbStreamUrl, setDbStreamUrl] = useState(null);
+<<<<<<< HEAD
   const [streamWebViewUrl] = useState(`${VIDEO_STREAM_URL}?${VIDEO_STREAM_QUERY}&t=${Date.now()}`);
   const lastAppliedSourceRef = useRef('');
   const healthMissCountRef = useRef(0);
   const lastConnectedAtRef = useRef(0);
+=======
+  // AI live results จาก /api/ai_results
+  const [aiResults, setAiResults] = useState([]);
+
+  // 🚨 ล็อค URL ไม่ให้ Re-render บ่อยเกินไป
+  const [stableStreamUrl] = useState(`${VIDEO_STREAM_URL}?t=${new Date().getTime()}`);
+>>>>>>> origin/main
 
   const { data, refetch } = useCameraData(session, cameraStatus);
 
@@ -507,6 +519,29 @@ export default function CameraScreen({ onNavigate, session }) {
     return () => clearInterval(t);
   }, [cameraStatus, session]);
 
+  // ── Poll AI results จาก serverCam ทุก 2 วิ ──────────────────────────────
+  useEffect(() => {
+    if (cameraStatus !== 'connected') {
+      setAiResults([]);
+      return;
+    }
+    const AI_BASE = VIDEO_STREAM_URL.replace('/api/video_feed', '');
+    let cancelled = false;
+    const fetchAi = async () => {
+      try {
+        const res = await fetch(`${AI_BASE}/api/ai_results`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!cancelled) setAiResults(json?.results ?? []);
+      } catch (_) {
+        // server ไม่ตอบ — ไม่แสดง error
+      }
+    };
+    fetchAi();
+    const t = setInterval(fetchAi, 2000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [cameraStatus]);
+
   const handleSelectCat = async (cat) => {
     setSelectedCat(cat);
     setShowCatSwitcher(false);
@@ -619,16 +654,38 @@ export default function CameraScreen({ onNavigate, session }) {
                   {cameraStatus !== 'disconnected' ? (
                     <View style={{ width: '100%', height: '100%', overflow: 'hidden', backgroundColor: '#E5E7EB' }}>
                       <WebView
+<<<<<<< HEAD
                         source={{ uri: streamWebViewUrl }}
                         style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
                         cacheEnabled={false}
+=======
+                        originWhitelist={['*']}
+                        source={{
+                          html: `<!DOCTYPE html>
+                            <html>
+                            <head>
+                              <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+                              <style>
+                                body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #E5E7EB; overflow: hidden; }
+                                img { width: 100%; height: 100%; object-fit: cover; }
+                              </style>
+                            </head>
+                            <body>
+                              <img src="${stableStreamUrl}" onerror="console.log('Stream Failed')" />
+                            </body>
+                            </html>`,
+                          baseUrl: VIDEO_STREAM_URL,
+                        }}
+                        style={{ flex: 1, width: '100%', height: '100%', backgroundColor: 'transparent' }}
+>>>>>>> origin/main
                         scrollEnabled={false}
                         bounces={false}
                         showsVerticalScrollIndicator={false}
                         showsHorizontalScrollIndicator={false}
-                        originWhitelist={['*']}
                         mixedContentMode="always"
                         allowsInlineMediaPlayback={true}
+                        javaScriptEnabled={true}
+                        domStorageEnabled={true}
                       />
                     </View>
                   ) : (
@@ -636,6 +693,7 @@ export default function CameraScreen({ onNavigate, session }) {
                       <Text style={styles.liveFeedLabel}>Camera Disconnected</Text>
                     </View>
                   )}
+
 
                   <View style={[styles.cameraStatusBadge, { backgroundColor: cameraStatus === 'connected' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(30, 30, 30, 0.75)' }]}>
                     <Animated.View style={[styles.cameraStatusDot, {
@@ -646,6 +704,27 @@ export default function CameraScreen({ onNavigate, session }) {
                       {cameraStatus === 'connected' ? 'Connected' : 'Camera Disconnected'}
                     </Text>
                   </View>
+
+                  {/* AI Behavior Badge */}
+                  {aiResults.length > 0 && (() => {
+                    const top = aiResults[0];
+                    const isAbnormal = top.abnormal;
+                    return (
+                      <View style={[styles.aiBadge, isAbnormal && styles.aiBadgeAbnormal]}>
+                        <Text style={[styles.aiBadgeText, isAbnormal && styles.aiBadgeTextAbnormal]}>
+                          {isAbnormal ? '⚠ ' : '🐱 '}
+                          {top.behavior}  {Math.round(top.confidence * 100)}%
+                        </Text>
+                        {top.cat_id && (
+                          <Text style={styles.aiBadgeCatId} numberOfLines={1}>
+                            {String(top.cat_id).includes('-')
+                              ? String(top.cat_id).slice(0, 8) + '…'
+                              : top.cat_id}
+                          </Text>
+                        )}
+                      </View>
+                    );
+                  })()}
                 </View>
 
                 <View style={styles.householdPill}>
@@ -1077,6 +1156,12 @@ const styles = StyleSheet.create({
   streamStatLabel: { fontSize: 9, color: '#78909C', fontWeight: '600', textTransform: 'uppercase', marginTop: 2 },
   streamStatValue: { fontSize: 11, color: '#004D40', fontWeight: '800' },
   streamStatDivider: { width: 1, height: 28, backgroundColor: '#D0EDE6' },
+  // AI Badge
+  aiBadge: { position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5, backdropFilter: 'blur(4px)' },
+  aiBadgeAbnormal: { backgroundColor: 'rgba(183,28,28,0.80)' },
+  aiBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700', letterSpacing: 0.2 },
+  aiBadgeTextAbnormal: { color: '#FFCDD2' },
+  aiBadgeCatId: { color: 'rgba(255,255,255,0.6)', fontSize: 9, marginTop: 1 },
   // Stats Grid
   statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
   statCard: { flex: 1, backgroundColor: '#FFFFFF', padding: 11, borderRadius: 14, alignItems: 'center', flexDirection: 'row', shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.015, shadowRadius: 2, elevation: 0 },

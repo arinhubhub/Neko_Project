@@ -324,7 +324,7 @@ export default function CalendarScreen({ onNavigate, session, initialDate }) {
         <View style={styles.detailsHeaderRow}>
           <View>
             <Text style={styles.dateTitle}>
-              {DAYS_OF_WEEK[selectedDate.getDay()]}, {MONTHS[selectedDate.getMonth()].substring(0, 3)} {selectedDate.getDate()}
+              {`${DAYS_OF_WEEK[selectedDate.getDay()]}, ${MONTHS[selectedDate.getMonth()].substring(0, 3)} ${selectedDate.getDate()}`.toUpperCase()}
             </Text>
           </View>
           <TouchableOpacity

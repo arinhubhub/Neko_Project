@@ -25,9 +25,14 @@ const CAMERA_BRANDS = [
 
 const HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 // 🚨 กำหนด URL ของ Camera Server (Port 5000)
+<<<<<<< HEAD
 const VIDEO_STREAM_URL = 'http://192.168.1.100:5000/api/video_feed_raw?fps=15&quality=62&width=960';
 const VIDEO_SERVER_BASE = VIDEO_STREAM_URL.split('/api')[0];
 const CAMERA_RTSP_URL = 'rtsp://testt1:1234test@192.168.1.102:554/stream2';
+=======
+const VIDEO_STREAM_URL = 'http://192.168.1.131:5000/api/video_feed';
+const CAMERA_RTSP_URL = 'rtsp://testt1:1234test@192.168.1.140:554/stream2';
+>>>>>>> origin/main
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -45,22 +50,38 @@ const DecorativeCatEars = () => (
 // ==============================================
 // ใช้ React.memo คู่กับ () => true เพื่อ "ล็อคตาย" ไม่ให้ Component นี้โหลดใหม่เด็ดขาด (แก้กระพริบ 100%)
 const LiveCameraStream = React.memo(({ streamUrl }) => {
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <style>
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #E5E7EB; overflow: hidden; }
+    img { width: 100%; height: 100%; object-fit: cover; }
+  </style>
+</head>
+<body>
+  <img src="${streamUrl}" onerror="console.log('Stream Failed')" />
+</body>
+</html>`;
+
     return (
         <View style={{ flex: 1, width: '100%', height: '100%', backgroundColor: '#E5E7EB', overflow: 'hidden' }}>
             <WebView
-                source={{ uri: streamUrl }} // ยิงตรงไปที่ URL เลย แก้ปัญหาจอเทาจาก HTML
+                originWhitelist={['*']}
+                source={{ html: htmlContent, baseUrl: streamUrl }}
                 style={{ flex: 1, backgroundColor: 'transparent' }}
                 scrollEnabled={false}
                 bounces={false}
                 showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}
-                originWhitelist={['*']}
                 mixedContentMode="always"
                 allowsInlineMediaPlayback={true}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
             />
         </View>
     );
-}, () => true); // <-- ไม้ตาย: คืนค่า true เสมอ เพื่อบอก React ว่า "ห้าม Re-render กล้องนี้อีกต่อไป"
+}, () => true); // ล็อค: ห้าม Re-render กล้องนี้อีกต่อไป
 
 // ==============================================
 // 2. Main Component (หน้าจอตั้งค่า)
