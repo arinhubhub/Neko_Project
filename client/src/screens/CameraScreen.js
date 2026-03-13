@@ -35,6 +35,7 @@ import { GlobalAlertQueueContext } from '../services/GlobalAlertQueue';
 const { width } = Dimensions.get('window');
 
 const HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
+const RTSP_URL = "http://192.168.1.106:554/stream2"
 // 🚨 เปลี่ยน 192.168.1.159 เป็น IP จริงของคอมพิวเตอร์คุณเสมอ
 const VIDEO_STREAM_URL = CAMERA_STREAM_URL_RAW;
 const VIDEO_STREAM_QUERY = CAMERA_STREAM_QUERY;
